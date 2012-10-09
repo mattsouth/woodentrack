@@ -3,6 +3,7 @@
 // a track section is a continuous section of track elements
 // there are different types of track element: (S)traight, (R)ight, (L)eft  
 // works with d3 v2 (see www.d3js.org)
+// TODO: calculate the dimensions of a track / section
 
 var gridSize=100;
 var trackWidth=20;
@@ -34,6 +35,7 @@ function Section() {
   this.pieces=new Array();
 }
 
+// TODO: get rid of hard code translation - calculate dimensions or provide setters
 Section.prototype.draw = function() {
   if (this.pieces.length>0) {
     var svg = d3.select("svg").append("g")
