@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="content-type">
+    <title>woodentrack demo</title>
+    <script src="http://d3js.org/d3.v2.js"></script>
+    <script src="woodentrack.js"></script>
+    <script language="javascript">   
+      function parseTrack(plan) {
+        var section = new Section();
+        tokens = plan.match(/\d*(R|L|S)/g);
+        for (i=0; i<tokens.length; i++) {
+          var num=parseInt(tokens[i])||1;
+          token=tokens[i].match("(S|L|R)")[0];
+          for (j=0;j<num;j++) {
+            if (token=="S") section.pieces.push(new Straight());
+            else if (token=="R") section.pieces.push(new Right());
+            else if (token=="L") section.pieces.push(new Left());
+          }
+        }
+        return new Array(section);
+      };
+
+      // update the track with the suggested plan      
+      function drawTrack(plan) {
+        var track = parseTrack(plan);
+        if (track!=null) {
+          // clear existing track
+          d3.select("svg").selectAll("path").remove();
+          d3.select("svg").selectAll("g").remove();
+          // draw new track
+          for (i=0; i<track.length;i++) {
+            track[i].draw();
+          }
+        };
+      };
+    </script>
+  </head>
+  <body onLoad="javascript:drawTrack(document.forms[0].code.value);">
+    <form name="sketch" id="sketch" action="#">
+      <textarea id="code" name="code">S R L</textarea>
+      <a href="javascript:drawTrack(document.forms[0].code.value);">draw</a>
+    </form>
+    <svg width="1000" height="1000"/>
+  </body>
+</html>
