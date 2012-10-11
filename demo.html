@@ -14,11 +14,11 @@
           token=tokens[i].match("(S|L|R)")[0];
           for (j=0;j<num;j++) {
             if (token=="S") section.pieces.push(new Straight());
-            else if (token=="R") section.pieces.push(new Right());
-            else if (token=="L") section.pieces.push(new Left());
+            else if (token=="R") section.pieces.push(new Bend(1));
+            else if (token=="L") section.pieces.push(new Bend(-1));
           }
         }
-        return new Array(section);
+        return new Track(new Array(section));
       };
 
       // update the track with the suggested plan      
@@ -29,9 +29,7 @@
           d3.select("svg").selectAll("path").remove();
           d3.select("svg").selectAll("g").remove();
           // draw new track
-          for (i=0; i<track.length;i++) {
-            track[i].draw();
-          }
+          track.draw(d3.select("svg"));
         };
       };
     </script>
