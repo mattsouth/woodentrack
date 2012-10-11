@@ -17,11 +17,13 @@ but I'm not 100% sure if this will work yet - sidings and crossover pieces seem 
 
 TODO (in no particular order):
 * Automatically size track and scale / center it
-* Add new track pieces - sidings, crossovers, different length straights 
+* Allow multiple sections in a track to be generated from the parser
+* Move gridSize and trackWidth into properties of the track object
+* Create railWidth and guage properties and allow colours to controlled (css?)
 * Detect and avoid track collisions
+* Check for complete tracks, or count the number of loose ends
 * Provide parsing feedback
 * Update demo to manipulate gridsize and trackwidth and annotate track pieces with their index / connection points
-* Allow multiple sections in a track
 * Set an automatic train around the track - does it traverse every piece?
 * provide some kind of fitness function for a track
 * run a genetic algorithm over track design
