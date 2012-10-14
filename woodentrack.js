@@ -57,8 +57,8 @@ Track.prototype.createSection = function() {
 
 Track.prototype.draw = function(svg) {
   // draw new track
-  for (i=0; i<this.sections.length;i++) {
-    this.sections[i].draw(svg);
+  for (idx=0; idx<this.sections.length; idx++) {
+    this.sections[idx].draw(svg);
   }
 }
 
@@ -71,7 +71,7 @@ function Section(track) {
 Section.prototype.draw = function(svg) {
   if (this.pieces.length>0) {
     var element = svg.append("g")
-          .attr("fill", this.track.trackColor)
+          .attr("fill", "none")
           .attr("stroke", this.track.railColor)
           .attr("stroke-width", this.track.railWidth);
     if (this.transform.translateX>0 || this.transform.translateY>0) {
@@ -81,25 +81,25 @@ Section.prototype.draw = function(svg) {
       element.attr("transform", "rotate(" + this.transform.rotation + ")");
     }
     for(i=0;i<this.pieces.length;i++){
-      element=this.pieces[i].draw(element);         
-    } 
+      element=this.pieces[i].draw(element);
+    }
   }
-}    
+}
 
 // track pieces
 
 function Piece(section) {
   this.section = section;
-  this.size = 1;
+  this.size = 2/3; // multiple of gridsize, e.g. 2, 1, 2/3, 1/2, 1/3
   this.angle = Math.PI/4;
   this.connections = {'A': new Transform(0,0,0)};
 }
 
-function Straight(section, size) {
-  this.section = section;
-  this.size = size; // multiple of gridsize, e.g. 2, 1, 2/3, 1/2, 1/3
+function Straight(section) {
+  Piece.call(this, section);
 }
 
+Straight.prototype = new Piece();
 Straight.prototype.draw = function(svg) {
   // draw track
   svg.append("path").attr("stroke-width", this.section.track.trackWidth).attr("stroke", this.section.track.trackColor).attr("d", "M 0 0 h " + this.size*this.section.track.gridSize);
@@ -108,26 +108,27 @@ Straight.prototype.draw = function(svg) {
     " h " + this.size*this.section.track.gridSize + 
     " m 0," + this.section.track.railGauge + 
     " h -" + this.size*this.section.track.gridSize);
+  // shift coordinates
   return svg.append("g").attr("transform", "translate(" + (this.size*this.section.track.gridSize + this.section.track.trackGap) + ",0)");
 }
 
-function Bend(flip) {
+function Bend(section, flip) {
   this.flip = flip; // 1 : "R", -1 : "L"
+  Piece.call(this, section);
+  this.size=1;
 }
 
+Bend.prototype = new Piece();
 Bend.prototype.draw = function(svg) {
   // draw track
-  svg.append("path").attr("d", "M 0 0 v " + (-1*this.flip*trackWidth/2) +
-    curvePath(this.flip, 1, (this.flip==1?1:0), gridSize+trackWidth/2, Math.PI/4) +
-    " l -" + (sin45*trackWidth) + " " + (this.flip*sin45*trackWidth) +
-    curvePath(-1*this.flip, -1, (this.flip==1?0:1), gridSize-trackWidth/2, Math.PI/4) + 
-    " z");
+  svg.append("path").attr("stroke-width", this.section.track.trackWidth).attr("stroke", this.section.track.trackColor).attr("d", "M 0 0 " + curvePath(this.flip, 1, (this.flip==1?1:0), this.section.track.gridSize*this.size, this.angle));
   // draw rails
-  svg.append("path").attr("d", "M 0 "+ (-1*this.flip*trackWidth/4) +
-    curvePath(this.flip, 1, (this.flip==1?1:0), gridSize+trackWidth/4, Math.PI/4) +
-    " l -" + (sin45*trackWidth/2) + " " + (this.flip*sin45*trackWidth/2) +
-    curvePath(this.flip*-1, -1, (this.flip==1?0:1), gridSize-trackWidth/4, Math.PI/4));
-  return svg.append("g").attr("transform", "translate(" + (sin45*gridSize) +"," + (this.flip*(1-sin45)*gridSize) +")").append("g").attr("transform","rotate(" + this.flip*45 + ")");
+  svg.append("path").attr("d", "M 0 " + (-1*this.flip*this.section.track.railGauge/2) +
+    curvePath(this.flip, 1, (this.flip==1?1:0), this.size*this.section.track.gridSize+this.section.track.railGauge/2, this.angle) +
+    " m -" + (Math.sin(this.angle)*this.section.track.railGauge) + " " + (this.flip*Math.cos(this.angle)*this.section.track.railGauge) +
+    curvePath(this.flip*-1, -1, (this.flip==1?0:1), this.size*this.section.track.gridSize-this.section.track.railGauge/2, this.angle));
+  // shift coordinates
+  return svg.append("g").attr("transform", "translate(" + (Math.sin(this.angle)*this.section.track.gridSize*this.size) +"," + (this.flip*(1-Math.cos(this.angle))*this.section.track.gridSize*this.size) +")").append("g").attr("transform","rotate(" + this.flip*this.angle*180/Math.PI + ")").append("g").attr("transform", "translate(" + this.section.track.trackGap+ ",0)");
 }
 
 function Junction(flip, exit) {

@@ -17,8 +17,8 @@
           token=tokens[i].match(/(R|L|S|J(R|L)(B|C)|X(R|L)(B|C|D))/g)[0];
           for (j=0;j<num;j++) {
             if (token=="S") section.pieces.push(new Straight(section,2/3));
-            else if (token=="R") section.pieces.push(new Bend(1));
-            else if (token=="L") section.pieces.push(new Bend(-1));
+            else if (token=="R") section.pieces.push(new Bend(section, 1));
+            else if (token=="L") section.pieces.push(new Bend(section, -1));
             else if (token.charAt(0)=="J") {
               var side = token.charAt(1);
               var exit = token.charAt(2);
