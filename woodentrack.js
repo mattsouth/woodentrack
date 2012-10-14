@@ -7,8 +7,6 @@
 // TODO: allow all element lengths to be scaled in all dimensions!
 
 // constants
-var gridSize=100;
-var trackWidth=20;
 var sin45 = Math.sqrt(2)/2; // sin(45deg)
 
 // derived values
@@ -33,9 +31,28 @@ function curvePath(side, direction, orbit, radius, angle) {
 }
 
 // objects
+function Transform(translateX, translateY, rotation) {
+  this.translateX = translateX;
+  this.translateY = translateY;
+  this.rotation = rotation;
+}
 
-function Track(sections) {
-  this.sections = sections;
+// TODO add trackColor, trackGap, railColor, railWidth, railGauge properties
+function Track() {
+  this.gridSize = 100;
+  this.trackWidth = 20;
+  this.trackColor = "lightgrey";
+  this.trackGap = 1;
+  this.railColor = "white";
+  this.railWidth = 2;
+  this.railGauge = 10;
+  this.sections = new Array();
+}
+
+Track.prototype.createSection = function() {
+  var result = new Section(this);
+  this.sections.push(result);
+  return result;
 }
 
 Track.prototype.draw = function(svg) {
@@ -45,18 +62,24 @@ Track.prototype.draw = function(svg) {
   }
 }
 
-function Section() {
-  this.pieces=new Array();
+function Section(track) {
+  this.track = track;
+  this.transform = new Transform(0,0,0);
+  this.pieces = new Array();
 }
 
-// TODO: get rid of hard code translation - calculate dimensions or provide attributes
 Section.prototype.draw = function(svg) {
   if (this.pieces.length>0) {
     var element = svg.append("g")
-          .attr("transform","translate(300,200)")
-          .attr("fill","lightgrey")
-          .attr("stroke", "white")
-          .attr("stroke-width",2);
+          .attr("fill", this.track.trackColor)
+          .attr("stroke", this.track.railColor)
+          .attr("stroke-width", this.track.railWidth);
+    if (this.transform.translateX>0 || this.transform.translateY>0) {
+      element.attr("transform", "translate(" + this.transform.translateX + ", " + this.transform.translateY + ")");
+    }
+    if (this.transform.rotation>0) {
+      element.attr("transform", "rotate(" + this.transform.rotation + ")");
+    }
     for(i=0;i<this.pieces.length;i++){
       element=this.pieces[i].draw(element);         
     } 
@@ -65,22 +88,27 @@ Section.prototype.draw = function(svg) {
 
 // track pieces
 
-function Straight(size) {
+function Piece(section) {
+  this.section = section;
+  this.size = 1;
+  this.angle = Math.PI/4;
+  this.connections = {'A': new Transform(0,0,0)};
+}
+
+function Straight(section, size) {
+  this.section = section;
   this.size = size; // multiple of gridsize, e.g. 2, 1, 2/3, 1/2, 1/3
 }
 
 Straight.prototype.draw = function(svg) {
   // draw track
-  svg.append("path").attr("d", "M 0 0 v -" + trackWidth/2 + 
-    " h " + this.size*gridSize + 
-    " v " + trackWidth + 
-    " h -" + this.size*gridSize + " z ");
+  svg.append("path").attr("stroke-width", this.section.track.trackWidth).attr("stroke", this.section.track.trackColor).attr("d", "M 0 0 h " + this.size*this.section.track.gridSize);
   // draw rails
-  svg.append("path").attr("d", "M 0 -" + trackWidth/4 + 
-    " h " + this.size*gridSize + 
-    " m 0," + trackWidth/2 + 
-    " h -" + this.size*gridSize);
-  return svg.append("g").attr("transform", "translate(" + this.size*gridSize + ",0)");
+  svg.append("path").attr("d", "M 0 -" + this.section.track.railGauge/2 + 
+    " h " + this.size*this.section.track.gridSize + 
+    " m 0," + this.section.track.railGauge + 
+    " h -" + this.size*this.section.track.gridSize);
+  return svg.append("g").attr("transform", "translate(" + (this.size*this.section.track.gridSize + this.section.track.trackGap) + ",0)");
 }
 
 function Bend(flip) {
