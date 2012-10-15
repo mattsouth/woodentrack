@@ -1,22 +1,10 @@
 // A javascript library for constructing toy wooden train track designs in SVG
 // a track object consists of multiple track sections
-// a track section is a continuous section of track elements
-// there are different types of track element: (S)traight, (R)ight, (L)eft  
-// works with d3 v2 (see www.d3js.org)
+// a track section is an unbroken run of track pieces
+// there are different types of track pieces: Straight, Bend, Junction, Crossover  
+// depends on d3 v2 (see www.d3js.org)
 // TODO: calculate the dimensions of a track / section
 // TODO: allow all element lengths to be scaled in all dimensions!
-
-// constants
-var sin45 = Math.sqrt(2)/2; // sin(45deg)
-
-// derived values
-function outsideRadius() {
-  return gridSize+trackWidth/2;
-}
-
-function insideRadius() {
-  return gridSize-trackWidth/2;
-}
 
 /*
 starting position facing along x axis...
@@ -52,14 +40,18 @@ Transform.prototype.transform = function(svg) {
     return svg;
 }
 
+Transform.prototype.compound = function(transform) {
+  return new Transform(this.translateX+transform.translateX, this.translateY+transform.translateY, this.rotation+transform.rotation);
+}
+
 function Track() {
   this.gridSize = 100;
-  this.trackWidth = 20;
+  this.trackWidth = 16;
   this.trackColor = "lightgrey";
   this.trackGap = 1;
   this.railColor = "white";
   this.railWidth = 2;
-  this.railGauge = 10;
+  this.railGauge = 9;
   this.sections = new Array();
 }
 
@@ -105,13 +97,15 @@ function Piece(section) {
   this.exit='B';
   this.flip=1; // 1 : "R", -1 : "L"
   this.connections = new Object();
-  this.connections['A']=new Transform(0,0,0);
+  this.connections['A'] = function(piece) {
+    return new Transform(0,0,0);
+  }
 }
 
 Piece.prototype.drawConnections = function(element) {
   for (var transform in this.connections) {
     if (this.connections.hasOwnProperty(transform)) {
-      element.append("circle").attr("cx", this.connections[transform].translateX).attr("cy", this.connections[transform].translateY).attr("r", 2).attr("stroke-width", 0).attr("fill", "white");
+      element.append("circle").attr("cx", this.connections[transform](this).translateX).attr("cy", this.connections[transform](this).translateY).attr("r", 2).attr("stroke-width", 0).attr("fill", "white");
     }
   }
 }
@@ -141,7 +135,7 @@ Piece.prototype.draw = function(svg) {
   this.drawConnections(svg); // make this optional;
   svg=svg.append("g");
   var transformToExit=this.connections[this.exit];
-  svg=transformToExit.transform(svg);
+  svg=transformToExit(this).transform(svg);
   svg=svg.append("g");
   var gap=new Transform(this.section.track.trackGap,0,0);
   return gap.transform(svg);
@@ -149,7 +143,9 @@ Piece.prototype.draw = function(svg) {
 
 function Straight(section) {
   Piece.call(this, section);
-  this.connections['B'] = new Transform(this.size*this.section.track.gridSize, 0, 0);
+  this.connections['B'] = function(piece) {
+    return new Transform(piece.size*piece.section.track.gridSize, 0, 0);
+  };
 }
 
 Straight.prototype = new Piece();
@@ -165,7 +161,9 @@ Straight.prototype.drawRails = function(svg) {
 function Bend(section, flip) {
   Piece.call(this, section);
   this.flip = flip; // 1 : "R", -1 : "L"
-  this.connections['B'] = new Transform((Math.sin(this.angle)*this.section.track.gridSize*this.radius), this.flip*(1-Math.cos(this.angle))*this.section.track.gridSize*this.radius, this.flip*this.angle*180/Math.PI);
+  this.connections['B'] = function(piece) {
+    return new Transform((Math.sin(piece.angle)*piece.section.track.gridSize*piece.radius), piece.flip*(1-Math.cos(piece.angle))*piece.section.track.gridSize*piece.radius, piece.flip*piece.angle*180/Math.PI);
+  };
 }
 
 Bend.prototype = new Piece();
@@ -182,8 +180,12 @@ function Junction(section, flip, exit) {
   Piece.call(this, section);
   this.flip = flip; // 1 : "R", -1: "L"
   this.exit = exit; // "B" | "C"
-  this.connections['B'] = new Transform(this.size*this.section.track.gridSize, 0, 0);
-  this.connections['C'] = new Transform((Math.sin(this.angle)*this.section.track.gridSize*this.radius), this.flip*(1-Math.cos(this.angle))*this.section.track.gridSize*this.radius, this.flip*this.angle*180/Math.PI);
+  this.connections['B'] = function(piece) {
+    return new Transform(piece.size*piece.section.track.gridSize, 0, 0);
+  }
+  this.connections['C'] = function(piece) {
+    return new Transform((Math.sin(piece.angle)*piece.section.track.gridSize*piece.radius), piece.flip*(1-Math.cos(piece.angle))*piece.section.track.gridSize*piece.radius, piece.flip*piece.angle*180/Math.PI);
+  }
 }
 
 Junction.prototype = new Piece();
@@ -202,37 +204,37 @@ function Crossover(section, flip, exit) {
   Piece.call(this, section);
   this.flip = flip; // 1 : "R", -1: "L"
   this.exit = exit; // "B" | "C" | "D"
-  this.connections['B'] = new Transform((Math.sin(this.angle)*this.section.track.gridSize*this.radius), this.flip*(1-Math.cos(this.angle))*this.section.track.gridSize*this.radius, this.flip*this.angle*180/Math.PI);
-  this.connections['C'] = new Transform(2*gridSize*Math.sin(this.angle/2), 2*this.flip*gridSize*(1-Math.cos(this.angle/2), 0);
-  // TODO: connection D
+  this.connections['B'] = function(piece) {
+    return new Transform((Math.sin(piece.angle)*piece.section.track.gridSize*piece.radius), piece.flip*(1-Math.cos(piece.angle))*piece.section.track.gridSize*piece.radius, piece.flip*piece.angle*180/Math.PI);
+  };
+  this.connections['C'] = function(piece) {
+    return new Transform(2*piece.section.track.gridSize*piece.radius*Math.sin(piece.angle/2), 2*piece.flip*piece.section.track.gridSize*piece.radius*(1-Math.cos(piece.angle/2)), 0);
+  };
+  this.connections['D'] = function (piece) {
+    var h = piece.radius*piece.section.track.gridSize*((1/Math.cos(piece.angle/2))-1);
+    return new Transform(h*Math.sin(piece.angle), -1*piece.flip*h*(1+Math.cos(piece.angle)), 180+(piece.flip*45));
+  }
 }
 
 Crossover.prototype = new Piece();
 
-Crossover.prototype.draw = function(svg) {
-  // draw track
-  var truncatedWidth = ((gridSize/(Math.cos(Math.PI/8)))-gridSize+(trackWidth/2));
-  svg.append("path").attr("d", "M 0 0 v " + this.flip*trackWidth/2 +
-    curvePath(this.flip, 1, (this.flip==1?1:0), gridSize-(trackWidth/2), Math.PI/4) +
-    " l " + (sin45*truncatedWidth) + " " + (-1*this.flip*sin45*truncatedWidth) +
-    " v " + -1*this.flip*truncatedWidth + 
-    " a " + (gridSize-(trackWidth/2)) + ", " + (gridSize-(trackWidth/2)) + " 0, " + (this.flip==1?"0 1 ":"0 0 ") + (-1*sin45*(gridSize-(trackWidth/2))) + ", " + (-1*this.flip*(1-sin45)*(gridSize-(trackWidth/2))) +
-    " l -" + (sin45*truncatedWidth) + " " + (this.flip*sin45*truncatedWidth) +
-    " z");
-  // draw rails
-  svg.append("path").attr("d", "M 0 " + this.flip*trackWidth/4 +
-    curvePath(this.flip, 1, (this.flip==1?1:0), gridSize-(trackWidth/4), Math.PI/4) +
-    " l " + (sin45*trackWidth/2) + " " + (-1*this.flip*sin45*trackWidth/2) +
-    curvePath(-1*this.flip, -1, (this.flip==1?0:1), gridSize+(trackWidth/4), Math.PI/4) + " z");
-  svg.append("path").attr("d", "M " + sin45*(truncatedWidth-3*trackWidth/4) + " " + -1*this.flip*((truncatedWidth-trackWidth/2)+(sin45*(truncatedWidth-3*trackWidth/4))) +
-    " a " + (gridSize+(trackWidth/4)) + ", " + (gridSize+(trackWidth/4)) + " 0, " + (this.flip==1?"0 0 ":"0 1 ") + (sin45*(gridSize+(trackWidth/4))) + ", " + (this.flip*(1-sin45)*(gridSize+(trackWidth/4))) +
-    " v " + -1*this.flip*trackWidth/2 +
-    " a " + (gridSize-(trackWidth/4)) + ", " + (gridSize-(trackWidth/4)) + " 0, " + (this.flip==1?"0 1 ":"0 0") + (-1*sin45*(gridSize-(trackWidth/4))) + ", " + (-1*this.flip*(1-sin45)*(gridSize-(trackWidth/4))) + " z").attr("fill", "none");
-  if (this.exit=="C") {
-    var x = gridSize*Math.sin(Math.PI/8);
-    var y = gridSize*Math.cos(Math.PI/8);
-    return svg.append("g").attr("transform", "translate(" + 2*x + "," + this.flip*2*(gridSize-y) + ")");
-  } else { // default exit is "B"
-    return svg.append("g").attr("transform", "translate(" + (sin45*gridSize) +"," + (this.flip*(1-sin45)*gridSize) +")").append("g").attr("transform","rotate(" + this.flip*45 + ")");
-  }
+Crossover.prototype.drawTrack = function(svg) {
+  this.drawBendTrack(svg);
+  svg=svg.append("g");
+  var conD = this.connections['D'](this).compound(new Transform(0,0,180));
+  svg = conD.transform(svg);
+  this.flip=this.flip*-1;
+  this.drawBendTrack(svg);
+  this.flip=this.flip*-1;
 }
+
+Crossover.prototype.drawRails = function(svg) {
+  this.drawBendRails(svg);
+  svg=svg.append("g");
+  var conD = this.connections['D'](this).compound(new Transform(0,0,180));
+  svg = conD.transform(svg);
+  this.flip=this.flip*-1;
+  this.drawBendRails(svg);
+  this.flip=this.flip*-1;
+}
+

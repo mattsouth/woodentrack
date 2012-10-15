@@ -1,11 +1,11 @@
-The concept for Woodentrack is a javascript library for designing and testing toy train track layouts.  It's an 
-exercise in getting to grips with SVG, that also allows me to the play with the idea of:
+The concept for Woodentrack is a javascript library for designing and testing toy train track layouts.  It's an exercise in getting to grips with SVG, that also allows me to the play with the idea of:
 
 1.  creating a single track from a set number of pieces that an electric train can fully traverse
 2.  automatically designing aesthetically pleasing tracks that satisfy req 1
 
-The current repository is the result of one evening's work and represents getting the feel for the 
-basic building blocks.  A demo for laying out a basic track is available (for the moment you'll have to 
+It may also be that this project could provide a way to explore html5/svg touch interfaces.
+
+A demo for laying out a basic track is available (for the moment you'll have to 
 download the two files and run demo.html in your browser until I've got my head around publishing the demo
 page on github pages).  The demo uses a simple domain specific language to generate a particular track design.  Examples include:
 * A basic ring : "2S4R2S4R" - i.e. two straight pieces then four right turn pieces, repeated
@@ -18,8 +18,7 @@ but I'm not 100% sure if this will work yet - sidings and crossover pieces seem 
 TODO (in no particular order):
 * Automatically size track and scale / center it
 * Allow multiple sections in a track to be generated from the parser
-* Move gridSize and trackWidth into properties of the track object
-* Create railWidth and guage properties and allow colours to controlled (css?)
+* explore using css to control colours
 * Detect and avoid track collisions
 * Check for complete tracks, or count the number of loose ends
 * Provide parsing feedback
