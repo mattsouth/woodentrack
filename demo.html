@@ -6,7 +6,20 @@
     <script src="http://d3js.org/d3.v2.js"></script>
     <script src="woodentrack.js"></script>
     <script src="woodentrack.dsl.js"></script>
+  </head>
+  <body onLoad="javascript:drawTrack(document.forms[0].code.value);">
+    <form name="sketch" id="sketch" action="#">
+      <textarea id="code" name="code" onkeypress="updateIfRequired(this.value)" style="width:100%">S R L</textarea>
+    </form>
     <script language="javascript">   
+      toks=tokeniseSection(document.forms[0].code.value); // initial value
+      function updateIfRequired(plan) {
+        newtoks = tokeniseSection(plan);
+        if (toks!=newtoks) {
+          toks = newtoks;
+          drawTrack(plan);
+        }
+      }
       function drawTrack(plan) {
         var track = parseTrack(plan);
         if (track!=null) {
@@ -18,12 +31,6 @@
         };
       };
     </script>
-  </head>
-  <body onLoad="javascript:drawTrack(document.forms[0].code.value);">
-    <form name="sketch" id="sketch" action="#">
-      <textarea id="code" name="code">S R L</textarea>
-      <a href="javascript:drawTrack(document.forms[0].code.value);">draw</a>
-    </form>
     <svg width="1000" height="1000"/>
   </body>
 </html>

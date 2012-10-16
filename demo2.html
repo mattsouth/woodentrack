@@ -34,7 +34,7 @@
         drawStraight(section, sizes[j]);
         drawStraight(section, sizes[j]);
         drawBend(section, 1, sizes[j]);
-        var junction = new Junction(section, 1, "C");
+        var junction = new Split(section, 1, "C");
         junction.radius=sizes[j];
         junction.size=2*sizes[j]/3;
         section.pieces.push(junction);
