@@ -1,9 +1,10 @@
 // A javascript library for constructing toy wooden train track designs in SVG
 // a track object consists of multiple track sections
 // a track section is an unbroken run of track pieces
-// there are different types of track pieces: Straight, Bend, Split, Crossover  
+// there are different types of track pieces: Straight, Bend, Join, Split, Merge, Crossover  
 // depends on d3 v2 (see www.d3js.org)
-// TODO: calculate the dimensions of a track / section
+// TODO: calculate the bounding box of a track / section
+// TODO: annotate the currently active connection and any free connections
 
 
 // objects
@@ -107,9 +108,9 @@ function Transform(translateX, translateY, rotation) {
 
 // only use for svg g elements
 Transform.prototype.transform = function(svg) {
-    if ((this.translateX>0 || this.translateY>0) && this.rotation>0) {
+    if ((this.translateX!=0 || this.translateY!=0) && this.rotation!=0) {
       svg.attr("transform", "translate(" + this.translateX + ", " + this.translateY + ") rotate(" + this.rotation + ")");
-    } else if (this.translateX>0 || this.translateY>0) { 
+    } else if (this.translateX!=0 || this.translateY!=0) { 
       svg.attr("transform", "translate(" + this.translateX + ", " + this.translateY + ")");
     } else if (this.rotation!=0) {
       svg.attr("transform", "rotate(" + this.rotation + ")");  
@@ -232,6 +233,44 @@ Bend.prototype.drawTrack = function(svg) {
 
 Bend.prototype.drawRails = function(svg) {
   this.drawBendRails(svg);
+}
+
+function Merge(section, flip, exit) {
+  Piece.call(this, section);
+  this.flip = flip; // 1 : "R", -1: "L"
+  this.exit = exit; // "A" | "B" | "C"
+  this.connections['B'] = function(piece) {
+    return new Transform(
+      Math.sin(piece.angle)*piece.section.track.gridSize*piece.radius, 
+      piece.flip*(1-Math.cos(piece.angle))*piece.section.track.gridSize*piece.radius,
+      (360+piece.flip*piece.angle*180/Math.PI)%360
+    );
+  };
+  this.connections['C'] = function(piece) {
+    return new Transform(
+      Math.sin(piece.angle)*piece.section.track.gridSize*piece.radius-Math.cos(piece.angle)*piece.section.track.gridSize*piece.size,
+      piece.flip*((1-Math.cos(piece.angle))*piece.section.track.gridSize*piece.radius-Math.sin(piece.angle)*piece.section.track.gridSize*piece.size),
+      180+piece.flip*piece.angle*180/Math.PI
+    );
+  }
+}
+
+Merge.prototype = new Piece();
+
+Merge.prototype.drawTrack = function(svg) {
+  this.drawBendTrack(svg);
+  svg=svg.append("g");
+  var conB = this.connections['B'](this).compound(new Transform(0,0,180));
+  svg = conB.transform(svg);
+  this.drawStraightTrack(svg);
+}
+
+Merge.prototype.drawRails = function(svg) {
+  this.drawBendRails(svg);
+  svg=svg.append("g");
+  var conB = this.connections['B'](this).compound(new Transform(0,0,180));
+  svg = conB.transform(svg);
+  this.drawStraightRails(svg);
 }
 
 function Split(section, flip, exit) {

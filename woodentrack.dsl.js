@@ -3,7 +3,7 @@ DSL - Domain Specific Language for woodentrack
 Allows a user to describe a track in a few lines of text, see demo.html
 
 pieces:
-S - Straight
+S(w|h|t) - Straight (whole|half|third)
 R - Right bend
 L - Left Bend
 J(L|R)(B|C) - Join
@@ -11,12 +11,12 @@ Y(L|R)(B|C) - Split
 X(L|R)(B|C|D) - Crossover
 */
 
-// convert plan into array of tokens
+// convert line of plan into array of tokens
 function tokeniseSection(section) {
-  return section.match(/\d*(R|L|S|(J|Y)(R|L)(B|C)|X(R|L)(B|C|D))/g);
+  return section.match(/\d*(R|L|S(w|h|t)?|(J|Y|M)(R|L)(B|C)|X(R|L)(B|C|D))/g);
 }
 
-// convert the track plan into a track object
+// convert the plan into a track object
 function parseTrack(plan) {
   var track = new Track();
   var lines = plan.split("\n");
@@ -36,7 +36,7 @@ function parseTrack(plan) {
         if (piece!=null) {
           var transform = track.getCompoundTransform(target);
           var exit = parts[0].match(/\D/)[0];
-          section.transform = transform.compound(piece.connections[exit](piece));
+          section.transform = transform.compound(piece.connections[exit](piece)).compound(new Transform(section.track.trackGap, 0, 0));
         }
       }
     } else {
@@ -45,20 +45,25 @@ function parseTrack(plan) {
     if (tokens!=null) {
       for (i=0; i<tokens.length; i++) {
         var num=parseInt(tokens[i])||1;
-        token=tokens[i].match(/(R|L|S|(J|Y)(R|L)(B|C)|X(R|L)(B|C|D))/g)[0];
+        token=tokens[i].match(/(R|L|S(w|h|t)?|(J|Y|M)(R|L)(B|C)|X(R|L)(B|C|D))/g)[0];
         for (j=0;j<num;j++) {
-          if (token=="S") {
+          if (token.charAt(0)=="S") {
             var straight=new Straight(section);
-            straight.size=1;
+            if (token.length==2) {
+              if (token.charAt(1)=="w") straight.size=1;
+              else if (token.charAt(1)=="h") straight.size=0.5;
+              else if (token.charAt(1)=="t") straight.size=1/3;    
+            } // NB defaults to 2/3
             section.pieces.push(straight);
           }
           else if (token=="R") section.pieces.push(new Bend(section, 1));
           else if (token=="L") section.pieces.push(new Bend(section, -1));
-          else if (token.charAt(0)=="J"||token.charAt(0)=="Y"||token.charAt(0)=="X") {
+          else if (token.charAt(0)=="J"||token.charAt(0)=="Y"||token.charAt(0)=="X"||token.charAt(0)=="M") {
             var side = token.charAt(1)=="R"?1:-1;
             var exit = token.charAt(2);
             if (token.charAt(0)=="J") section.pieces.push(new Join(section, side, exit));
             else if (token.charAt(0)=="Y") section.pieces.push(new Split(section, side, exit));
+            else if (token.charAt(0)=="M") section.pieces.push(new Merge(section, side, exit));
             else section.pieces.push(new Crossover(section, side, exit));
           }
         }

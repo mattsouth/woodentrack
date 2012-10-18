@@ -17,7 +17,8 @@ but I'm not 100% sure if this will work yet - sidings and crossover pieces seem 
 
 TODO (in no particular order):
 * Automatically size track and scale / center it
-* Allow multiple sections in a track to be generated from the parser
+* Annotating free ends with their piece index and connection 
+* Allow parser to specify straight length
 * explore using css to control colours
 * Detect and avoid track collisions
 * Check for complete tracks, or count the number of loose ends
