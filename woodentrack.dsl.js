@@ -2,12 +2,18 @@
 DSL - Domain Specific Language for woodentrack
 Allows a user to describe a track in a few lines of text, see demo.html
 
-pieces:
-S(w|h|t) - Straight (whole|half|third)
+Each line consists of an optional position instruction followed by a list of sequential pieces.
+The optional position instruction takes the form of transform or connection instruction, e.g.
+"t(100,100,45):" says translate x=100, y=100 pixels then rotate 45 degrees
+"4C:" says connect to the C connection of the 4th piece.
+
+pieces (using javascript regExp notation before hypen):
+S(w|h|t)? - Straight (whole|half|third)
 R - Right bend
 L - Left Bend
-J(L|R)(B|C) - Join
+J(L|R)(B|C) - Join (Bend) (Exit Connection)
 Y(L|R)(B|C) - Split
+M(L|R)(B|C) - Merge
 X(L|R)(B|C|D) - Crossover
 */
 
@@ -31,6 +37,7 @@ function parseTrack(plan) {
         transformParts = parts[0].match(/\d+/g);
         section.transform = new Transform(parseInt(transformParts[0]), parseInt(transformParts[1]), parseInt(transformParts[2]));
       } else if (parts[0].search(/\d+\w/)>-1) {
+        // process connection instruction
         var target = parseInt(parts[0].match(/\d+/)[0]);
         var piece = track.getPiece(target);
         if (piece!=null) {

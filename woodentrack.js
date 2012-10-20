@@ -4,7 +4,7 @@
 // there are different types of track pieces: Straight, Bend, Join, Split, Merge, Crossover  
 // depends on d3 v2 (see www.d3js.org)
 // TODO: calculate the bounding box of a track / section
-// TODO: annotate the currently active connection and any free connections
+// TODO: provide means to annotate the current target connection and any free connections
 
 
 // objects
