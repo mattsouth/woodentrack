@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="content-type">
+    <title>woodentrack demo</title>
+    <script src="http://d3js.org/d3.v2.js"></script>
+    <script src="woodentrack.js"></script>
+    <script src="woodentrack.dsl.js"></script>
+  </head>
+  <body onLoad="javascript:drawTrack(document.forms[0].code.value);">
+    <form name="sketch" id="sketch" action="#">
+      <textarea id="code" name="code" onkeypress="updateIfRequired(this.value)" style="width:100%">t(290,50,0): JRB Sh YRB 2S 2R S Sh 2R 2S JRB Sh YRB 2S 2R S Sh 2R 2S
+2C: MLB 4R YLB 2Sw JLB 4R YLB 2Sw</textarea>
+    </form>
+    <script language="javascript">   
+      toks=tokeniseSection(document.forms[0].code.value); // initial value
+      function updateIfRequired(plan) {
+        newtoks = tokeniseSection(plan);
+        if (toks!=newtoks) {
+          toks = newtoks;
+          drawTrack(plan);
+        }
+      }
+      function drawTrack(plan) {
+        var track = parseTrack(plan);
+        if (track!=null) {
+          // clear existing track
+          d3.select("svg").selectAll("path").remove();
+          d3.select("svg").selectAll("g").remove();
+          // draw new track
+          track.draw(d3.select("svg"));
+        };
+      };
+    </script>
+    <svg width="1000" height="1000"/>
+  </body>
+</html>
