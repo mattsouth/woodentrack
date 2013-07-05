@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="content-type">
+    <title>woodentrack demo</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript" src="http://d3js.org/d3.v2.js"></script>
+    <script type="text/javascript" src="jquery-svgpan.js"></script>
+    <script type="text/javascript" src="woodentrack.js"></script>
+    <script type="text/javascript" src="woodentrack.dsl.js"></script>
+    <style>
+      svg {
+        border: 1px solid #aaa;
+        overflow: hidden; /* Thanks IE9! */
+      }
+      #code {
+        width: 800px;
+      }
+    </style>
+  </head>
+  <body>
+    <form name="sketch" id="sketch" action="#">
+      <textarea id="code" name="code" onkeypress="updateIfRequired(this.value)">t(290,50,0): JRB Sh YRB 2S 2R S Sh 2R 2S JRB Sh YRB 2S 2R S Sh 2R 2S
+2C: MLB 4R YLB 2Sw JLB 4R YLB 2Sw</textarea>
+    </form>
+    <svg width="800" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+    <script type="text/javascript">   
+      toks=tokeniseSection(document.forms[0].code.value); // initial value
+      function updateIfRequired(plan) {
+        newtoks = tokeniseSection(plan);
+        if (toks!=newtoks) {
+          toks = newtoks;
+          drawTrack(plan);
+        }
+      }
+      function drawTrack(plan) {
+        var track = parseTrack(plan);
+        if (track!=null) {
+          // clear existing track
+          d3.select("svg").selectAll("path").remove();
+          d3.select("svg").selectAll("g").remove();
+          // draw new track
+          track.draw(d3.select("svg"));
+        };
+      };
+      $(document).ready(function() {
+        drawTrack(document.forms[0].code.value);
+        $('svg').svgPan('viewport');
+      });
+    </script>
+  </body>
+</html>

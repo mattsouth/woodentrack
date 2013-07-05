@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="content-type">
+    <title>woodentrack demo - circles</title>
+    <script src="http://d3js.org/d3.v2.js"></script>
+    <script src="woodentrack.js"></script>
+  </head>
+  <body>
+    <h1>Circles demo</h1>
+    <svg width="440" height="440"/>
+    <script language="javascript">   
+      var sizes = [2,1.5,1,0.5];
+      var angles = [Math.PI/8, Math.PI/6, Math.PI/4, Math.PI/4];
+      var reps = [16, 12, 8, 8];
+      var track = new Track();
+      for (j=0;j<sizes.length;j++) {
+        var circle = track.createSection();
+        circle.transform = new Transform(220,220-(100*sizes[j]),0);
+        for (i=0;i<reps[j];i++) {
+          var bend = new Bend(circle, 1);
+          bend.angle=angles[j];
+          bend.radius=sizes[j];
+          circle.pieces.push(bend);
+        }
+      }
+      track.draw(d3.select("svg"));
+    </script>
+  </body>
+</html>
