@@ -26,6 +26,7 @@ Track.prototype.createSection = function() {
 }
 
 Track.prototype.draw = function(svg) {
+  svg = svg.append("g").attr("id", "viewport")  // for svgpan
   this.sections.forEach( function(section) {
     section.draw(svg);
   });
