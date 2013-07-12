@@ -9,23 +9,89 @@
     <script type="text/javascript" src="woodentrack.js"></script>
     <script type="text/javascript" src="woodentrack.dsl.js"></script>
     <style>
+      body {
+        font-family: helvetica, arial, sans;
+        font-size: 0.8em;
+      }
+      h1 {
+        font-size: 1.5em;
+      }
+      svg, textarea, input {
+        display:block;
+      }
       svg {
         border: 1px solid #aaa;
         overflow: hidden; /* Thanks IE9! */
       }
+      ul {
+        display: inline;
+      }
+      li {
+        display: inline;
+        padding-right: 10px;
+      }
+      a.button {
+          text-decoration: none;
+      }
+      .properties {
+        width: 238px;
+        display: inline;
+      }
+      .button {
+        padding: 4px 6px;
+        color: #000;
+        border: grey solid 2px; 
+      }
+      .selected {
+        background: #CCC;
+      }
       #code {
         width: 800px;
+      }
+      #main-title {
+        width:400px;
+        display: inline;
       }
     </style>
   </head>
   <body>
+    <h1 id="main-title">Woodentrack DSL demo</h1>
+    <ul>
+      <li><a href="demo.html?example=1" class="button" id="ex1">example 1</a></li>
+      <li><a href="demo.html?example=2" class="button" id="ex2">example 2</a></li>
+      <li><a href="demo.html?example=3" class="button" id="ex3">example 3</a></li>
+    </ul>
+    <div><embed src="dsl.svg"/></div>
     <form name="sketch" id="sketch" action="#">
-      <textarea id="code" name="code" onkeypress="updateIfRequired(this.value)">t(290,50,0): JRB Sh YRB 2S 2R S Sh 2R 2S JRB Sh YRB 2S 2R S Sh 2R 2S
-2C: MLB 4R YLB 2Sw JLB 4R YLB 2Sw</textarea>
+      <label>Use DSL to define track here:</label>
+      <textarea id="code" name="code" onkeypress="updateIfRequired(this.value)">
+      </textarea>
+      <svg id="track-canvas" width="800" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+      <!--
+      <fieldset class="properties">
+        <legend>Canvas</legend>
+        <label>gridsize</label>
+        <input id="gridsize" type="text"></input> 
+        <label>background colour</label>
+        <input id="background" type="text"></input>
+      </fieldset>
+      <fieldset class="properties">
+        <legend>Track</legend>
+        <label>colour</label>
+        <input id="trackColour" type="text"></input> 
+        <label>width</label>
+        <input id="trackWidth" type="text"></input>
+      </fieldset>
+      <fieldset class="properties">
+        <legend>Rails</legend>
+        <label>rail colour</label>
+        <input id="railColour" type="text"></input> 
+        <label>gauge</label>
+        <input id="trackGauge" type="text"></input>
+      </fieldset>
+      -->
     </form>
-    <svg width="800" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
     <script type="text/javascript">   
-      toks=tokeniseSection(document.forms[0].code.value); // initial value
       function updateIfRequired(plan) {
         newtoks = tokeniseSection(plan);
         if (toks!=newtoks) {
@@ -37,16 +103,40 @@
         var track = parseTrack(plan);
         if (track!=null) {
           // clear existing track
-          d3.select("svg").selectAll("path").remove();
-          d3.select("svg").selectAll("g").remove();
+          d3.select('#track-canvas').selectAll("path").remove();
+          d3.select('#track-canvas').selectAll("g").remove();
           // draw new track
-          track.draw(d3.select("svg"));
+          track.draw(d3.select('#track-canvas'));
+          // make zoom and pannable
+          $('#track-canvas').svgPan('viewport');
         };
       };
       $(document).ready(function() {
+        if (location.search.length>0) {
+          var example = getQueryStringParameter(location.search, "example");
+          if (example>0 && example<4) $('#ex'+example).addClass("selected");
+          if (example==1) {
+            document.forms[0].code.value="8R";
+          } else if (example==2) {
+            document.forms[0].code.value="t(290,50,0): 3R XRC 7L\n3B: 5R";
+          } else if (example==3) {
+            document.forms[0].code.value="t(290,50,0): JRB Sh YRB 2S 2R S Sh 2R 2S JRB Sh YRB 2S 2R S Sh 2R 2S\n2C: MLB 4R YLB 2Sw JLB 4R YLB 2Sw";
+          }
+        }
+        toks=tokeniseSection(document.forms[0].code.value); // initial value
         drawTrack(document.forms[0].code.value);
-        $('svg').svgPan('viewport');
       });
+      function getQueryStringParameter(qry,name){
+          if(typeof qry !== undefined && qry !== ""){
+              var keyValueArray = qry.split("&");
+              for ( var i = 0; i < keyValueArray.length; i++) {
+                  if(keyValueArray[i].indexOf(name)>-1){
+                      return keyValueArray[i].split("=")[1];
+                  }
+              }
+          }
+          return "";
+      }
     </script>
   </body>
 </html>
