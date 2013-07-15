@@ -61,11 +61,13 @@
       <li><a href="demo.html?example=2" class="button" id="ex2">example 2</a></li>
       <li><a href="demo.html?example=3" class="button" id="ex3">example 3</a></li>
     </ul>
+    <p>Use the examples above to get a feel for how you can define a track of your own with the woodentrack Domain Specific Language (DSL).</p>
     <div><embed src="dsl.svg"/></div>
     <form name="sketch" id="sketch" action="#">
-      <label>Use DSL to define track here:</label>
+      <label>Define your track here (it will automatically redraw itself as you change it):</label>
       <textarea id="code" name="code" onkeypress="updateIfRequired(this.value)">
       </textarea>
+      <label>You can pan and zoom the track, with your mouse.</label>
       <svg id="track-canvas" width="800" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
       <!--
       <fieldset class="properties">
@@ -93,6 +95,7 @@
     </form>
     <script type="text/javascript">   
       function updateIfRequired(plan) {
+        //FIXME: Sometimes this breaks.  Why?
         newtoks = tokeniseSection(plan);
         if (toks!=newtoks) {
           toks = newtoks;
@@ -107,6 +110,8 @@
           d3.select('#track-canvas').selectAll("g").remove();
           // draw new track
           track.draw(d3.select('#track-canvas'));
+          //FIXME: Panning stops working once it's redrawn
+          //FIXME: Zoom is reset when you redraw
           // make zoom and pannable
           $('#track-canvas').svgPan('viewport');
         };

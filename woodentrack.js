@@ -4,8 +4,9 @@
 // there are different types of track pieces: Straight, Bend, Join, Split, Merge, Crossover  
 // depends on d3 v2 (see www.d3js.org)
 // TODO: calculate the bounding box of a track / section
-// TODO: provide means to annotate the current target connection and any free connections
-
+// TODO: try separating interface from implementation and use rafael to do the drawing.
+// TODO?: move all public functions back to the prototype (does it save memory?)
+// TODO: add annotations to all free pieces of track (which requires a model of free items which is tricky between sections and might require an event model that includes piece added/removed, section added/removed, property changed, free end added/removed.  But an event model ought to allow incremental drawing to be possible.
 
 // A track object holds all sections/pieces and track properties
 function Track(cfg) {
@@ -17,6 +18,8 @@ function Track(cfg) {
   this.railColor = "white";
   this.railWidth = 2;
   this.railGauge = 9; // gap between rails
+  this.showPieceIndices = false;
+  this.showAnnotations = true;
 	for (var key in cfg) {
 		this[key] = cfg[key];
 	}
@@ -32,10 +35,19 @@ function Track(cfg) {
     this.sections.forEach( function(section) {
       section.draw(svg);
     });
-    //this.annotate(svg);
+    if (this.showPieceIndices) drawIndices(svg);
+    if (this.showAnnotations) annotate(svg);
   }
 
-  this.annotate = function(svg) {
+  // TODO: draws annotations on loose ends that show the piece index and exit,
+  // i.e. a straight laid on the track will show 0A and 0B at each end.
+  function annotate(svg) {
+    var idx=0;
+  }
+  
+  // draws an index (0...n) to each peice on the track, which can be used for attaching 
+  // new sections to loose ends
+  function drawIndices(svg) {
     var idx=0;
     for (i=0; i<this.sections.length; i++) {
       section = this.sections[i];
@@ -52,6 +64,7 @@ function Track(cfg) {
     }
   }
 
+  //TODO: not used.  What is this for?
   this.getPiece = function(idx) {
     var counter=0;
     for (i=0; i<this.sections.length; i++) {
@@ -63,6 +76,7 @@ function Track(cfg) {
     return null;
   }
 
+  // TODO: not used.  What is this for?
   this.getCompoundTransform = function(idx) {
     var counter=idx;
     for (i=0; i<this.sections.length; i++) {
@@ -89,10 +103,11 @@ function Track(cfg) {
 function Section(track) {
   this.track = track;
   this.pieces = new Array();
+  var ends = [];
   this.transform = new Transform(0,0,0);  // starting position and orientation of first piece
 
   this.draw = function(svg) {
-    if (this.pieces.length>0) {
+    if (this.pieces.length>0 && this.track!=null) {
       var svg = svg.append("g")
             .attr("fill", "none")
             .attr("stroke", this.track.railColor)
@@ -103,7 +118,14 @@ function Section(track) {
       });
     }
   }
+  
+  // TODO: Would be good to have a createPiece(Type, details), like Object.create - it mirrors the parent track.createSection method
+  this.add = function(piece) {
+    piece.section = this;
+    pieces.push(piece) 
+  }
 }
+
 
 // useful transform functions
 function Transform(translateX, translateY, rotation) {
@@ -199,7 +221,6 @@ function Piece(section) {
     var gap=new Transform(this.section.track.trackGap,0,0);
     return gap.transform(svg);
   }
-
 }
 
 // Track piece implementations ... 
