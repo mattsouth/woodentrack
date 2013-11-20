@@ -3,28 +3,30 @@
   <head>
     <meta content="text/html;charset=utf-8" http-equiv="content-type">
     <title>woodentrack demo - circles</title>
-    <script src="http://d3js.org/d3.v2.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script src="woodentrack.js"></script>
+    <script src="coffee-script.js"></script>
   </head>
   <body>
     <h1>Circles demo</h1>
     <svg width="440" height="440"/>
-    <script language="javascript">   
-      var sizes = [2,1.5,1,0.5];
-      var angles = [Math.PI/8, Math.PI/6, Math.PI/4, Math.PI/4];
-      var reps = [16, 12, 8, 8];
-      var track = new Track();
-      for (j=0;j<sizes.length;j++) {
-        var circle = track.createSection();
-        circle.transform = new Transform(220,220-(100*sizes[j]),0);
-        for (i=0;i<reps[j];i++) {
-          var bend = new Bend(circle, 1);
-          bend.angle=angles[j];
-          bend.radius=sizes[j];
-          circle.pieces.push(bend);
-        }
-      }
-      track.draw(d3.select("svg"));
+    <script type="text/coffeescript">   
+      circles = [
+        {size: 2, reps: 16},
+        {size: 1.5, reps: 12},
+        {size: 1, reps: 8},
+        {size: 0.5, reps: 8}
+      ]
+      track = new Track()
+      for circle in circles
+        section = track.createSection()
+        section.transform = new Transform(220, 200-(100*circle.size), 0)
+        for rep in [1..circle.reps]
+          bend = new Bend section, 1
+          bend.angle = Math.PI/(circle.reps/2)
+          bend.radius = circle.size
+          section.pieces.push bend
+      track.draw d3.select("svg")
     </script>
   </body>
 </html>
