@@ -16,8 +16,7 @@ class Track
 class Section
 	constructor: (@track) ->
 		@pieces = []
-		@ends = []
-		@transform = new Transform 0, 0, 0
+		@transform = new Transform 0, 0, 0 # starting coords, relative to track starting coords
 
 	add: (piece) ->
 		piece.section = this
@@ -36,6 +35,7 @@ class Transform
 			(300+this.rotateDegs+transform.rotateDegs)%360
 
 # abstract track piece
+# @connections define the transforms associated with each connection on the piece
 class Piece
 	constructor: (@section, options) ->
 		{
@@ -50,5 +50,5 @@ class Piece
 class Straight
 	constructor: (@section, options) ->
 		super @section, options
-		@connections['B'] = new Transform 0, 0
+		@connections['B'] = new Transform @size*@section.track.gridSize, 0, 0
 
