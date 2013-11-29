@@ -1,0 +1,13 @@
+{
+    "name" : "woodentrack",
+    "version" : "0.0.1",
+    "author" : "Matt South <matt@mattsouth.net>",
+    "repository" : {
+        "type" : "git",
+        "url" : "https://www.github.com/mattsouth/woodentrack·git"
+    },
+    "dependencies" : {
+        "coffee-script" : ">=1.6.3",
+        "mocha" : ">=1.14.0"
+    }
+}
