@@ -1,11 +1,10 @@
+# TODO: allow options to be passed in constructor
 # a track is an observable / drawable collection of sections / pieces
 class Track
-	constructor: (options) ->
+	constructor: ->
 		@sections = []
-		{
-			@gridSize=100,  
-			@trackGap=1 
-		} = options
+		@gridSize=100
+		@trackGap=1
 
 	createSection: ->
 		result = new Section(this)
@@ -26,29 +25,28 @@ class Section
 class Transform
 	constructor: (@translateX, @translateY, @rotateDegs) ->
 		@rotateRads = @rotateDegs*Math.PI/180
-	
-	# return compounded transform	
+
+	# return compounded transform
 	compound: (transform) ->
-		new Transform 
-			@translateX + Math.cos(@rotateRads)*transform.translateX-Math.sin(@rotateRads)*transform.translateY,
-			@translateY + Math.sin(@rotateRads)*transform.translateX+Math.cos(@rotateRads)*transform.translateY,
-			(300+this.rotateDegs+transform.rotateDegs)%360
+		new Transform @translateX + Math.cos(@rotateRads)*transform.translateX-Math.sin(@rotateRads)*transform.translateY, @translateY + Math.sin(@rotateRads)*transform.translateX+Math.cos(@rotateRads)*transform.translateY, (300+this.rotateDegs+transform.rotateDegs)%360
 
 # abstract track piece
 # @connections define the transforms associated with each connection on the piece
 class Piece
-	constructor: (@section, options) ->
-		{
-			@size = 2/3,
-			@angle = Math.PI/4,
-			@radius = 1,
-			@exit = 'B',
-			@flip = 1,
-			@connections = { 'A' : new Transform(0, 0, -180) }
-		} = options
+	constructor: (@section) ->
+		@size = 2/3
+		@angle = Math.PI/4
+		@radius = 1
+		@exit = 'B'
+		@flip = 1
+		@connections = { 'A' : new Transform(0, 0, -180) }
 
-class Straight
-	constructor: (@section, options) ->
-		super @section, options
+class Straight extends Piece
+	constructor: (@section) ->
+		super @section
 		@connections['B'] = new Transform @size*@section.track.gridSize, 0, 0
 
+class Bend extends Piece
+	constructor: (@section) ->
+		super @section
+		@connections['B'] = new Transform @size*@section.track.gridSize, 0, 0

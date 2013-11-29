@@ -29,7 +29,7 @@ task 'test', 'Build and run test suite', ->
 
     # Build the coffee files
     log 'Building coffee files', blue
-    build = spawn "./node_modules/.bin/coffee", "-c -m ./src".split(" ")
+    build = spawn "./node_modules/.bin/coffee", "-c -m ./src ./test".split(" ")
     build.stdout.pipe process.stdout
     build.stderr.pipe process.stderr
     build.on 'exit', (code) ->
