@@ -1,10 +1,9 @@
-# TODO: allow options to be passed in constructor
-# a track is an observable / drawable collection of sections / pieces
+# a track is an observable / drawable collection of sections
 class Track
-	constructor: ->
-		@gridSize=100
-		@trackGap=1
-		@sections=[]
+	constructor: (options={}) ->
+		@gridSize = options.gridSize ? 100
+		@trackGap = options.trackGap ? 1
+		@sections = []
 
 	createSection: ->
 		section = new Section(this)
@@ -14,7 +13,7 @@ class Track
 	connections: ->
 		result = []
 		@sections.forEach (x) ->
-			result.concat x.connections()
+			result = result.concat x.connections()
 		result
 
 # a section is an observable / drawable unbroken run of pieces
@@ -31,9 +30,11 @@ class Section
 	# connections = connection 0.A + all other free connections
 	connections: -> 
 		if @pieces.length>0
-			# TODO:take into account pieces with more than one connection
+			result = []
+			result.push @pieces[0].connections['A']
+			result.push @pieces[@pieces.length-1].connections['B']
 			# TODO:take into account loops
-			[@pieces[0]['A'],@pieces[@pieces.length-1]['B']]
+			result
 		else
 			[]
 
@@ -51,12 +52,12 @@ class Transform
 # abstract track piece
 # @connections define the transforms associated with each connection on the piece
 class Piece
-	constructor: (@section) ->
-		@size = 2/3
-		@angle = Math.PI/4
-		@radius = 1
-		@exit = 'B'
-		@flip = 1
+	constructor: (@section, options={}) ->
+		@size = options.size ? 2/3
+		@angle = options.angle ? Math.PI/4
+		@radius = options.radius ? 1
+		@exit = options.exit ? 'B'
+		@flip = options.flip ? 1
 		@connections = { 'A' : new Transform(0, 0, -180) }
 
 class Straight extends Piece
