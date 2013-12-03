@@ -1,15 +1,20 @@
 <html>
 	<head>
-	    <script src="../coffee-script.js"></script>
-    	<script type="text/coffeescript" src="../src/woodentrack.coffee"></script>
+		<title>Woodentrack demo</title>
+		<script src="../coffee-script.js"></script>
+		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+		<script type="text/coffeescript" src="../src/woodentrack.coffee"></script>
+		<script type="text/coffeescript" src="../src/woodentrack.d3.coffee"></script>
 	</head>
 	<body>
-		<h1>demotastic</h1>
+		<h1>Demotastic</h1>
+		<svg id="track-canvas" width="800" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
 		<script type="text/coffeescript">
 			window.track = new Track
 			section = track.createSection()
 			section.add new Straight(section)
 			section.add new Straight(section)
+			painter = new D3TrackPainter track, '#track-canvas'
 		</script>
 	</body>
 </html>
