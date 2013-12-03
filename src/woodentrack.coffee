@@ -1,4 +1,5 @@
 # a track is an observable / drawable collection of sections
+# TODO: make observable
 class Track
 	constructor: (options={}) ->
 		@gridSize = options.gridSize ? 100
@@ -17,19 +18,20 @@ class Track
 		result
 
 # a section is an observable / drawable unbroken run of pieces
+# TODO: remove piece from section
 class Section
 	constructor: (@track) ->
 		@pieces = []
 		@transform = new Transform 0, 0, 0 # starting coords, relative to track origin
 
- 	# TODO: throw error if the exit connection is connected
+ 	# TODO: throw error if the exit connection is connected i.e. when section is a loop of simple pieces
 	add: (piece) ->
 		piece.section = this
-		# connect existing exit to piece connection a
+		# connect existing exit connection to piece connection A
 		if @exit?
 			@exit.connected = piece.connections['A']
 			piece.connections['A'].connected = @exit
-		# update exit connection for this section
+		# update section exit connection
 		@exit = piece.connections[piece.exit]
 		@pieces.push piece
 		return piece
@@ -41,8 +43,7 @@ class Section
 		@pieces.forEach (piece) =>
 			for label, connection of piece.connections
 				result.push start.compound(connection) if !connection.connected
-			start = start.compound(piece.connections[piece.exit])
-			start = start.compound(new Transform(@track.trackGap, 0, 0))
+			start = start.compound(piece.connections[piece.exit]).compound(new Transform(@track.trackGap, 0, 0))
 		result
 
 # a transform is used to move/rotate coordinate axes

@@ -18,5 +18,6 @@ Potential demos
  3. take existing track and click button to morph track into another layout with the same pieces and the same number of loose ends
 
 ### TODO:
- - remove need to pass section into piece constructor
  - get something painting
+ - more piece types
+ - remove need to pass section into piece constructor (make piece access to track.gridSize lazy?)
