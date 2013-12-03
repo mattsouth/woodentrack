@@ -37,7 +37,7 @@ task 'test', 'Build and run test suite', ->
          # Check for error
         if code is 0
             log 'Running test suite', blue
-            test = spawn "./node_modules/.bin/mocha", "-R spec ./test".split(" ")
+            test = spawn "./node_modules/.bin/mocha", "--reporter spec --timeout 300000 ./test".split(" ")
             test.stdout.pipe process.stdout
             test.stderr.pipe process.stderr
         else

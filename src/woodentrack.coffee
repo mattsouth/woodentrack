@@ -12,8 +12,8 @@ class Track
 
 	connections: ->
 		result = []
-		@sections.forEach (x) ->
-			result = result.concat x.connections()
+		@sections.forEach (section) ->
+			result = result.concat section.connections()
 		result
 
 # a section is an observable / drawable unbroken run of pieces
@@ -22,21 +22,28 @@ class Section
 		@pieces = []
 		@transform = new Transform 0, 0, 0 # starting coords, relative to track origin
 
+ 	# TODO: throw error if the exit connection is connected
 	add: (piece) ->
 		piece.section = this
+		# connect existing exit to piece connection a
+		if @exit?
+			@exit.connected = piece.connections['A']
+			piece.connections['A'].connected = @exit
+		# update exit connection for this section
+		@exit = piece.connections[piece.exit]
 		@pieces.push piece
 		return piece
 
-	# connections = connection 0.A + all other free connections
-	connections: -> 
-		if @pieces.length>0
-			result = []
-			result.push @pieces[0].connections['A']
-			result.push @pieces[@pieces.length-1].connections['B']
-			# TODO:take into account loops
-			result
-		else
-			[]
+	# all available (unconnected) connections
+	connections: ->
+		result = []
+		start = @transform
+		@pieces.forEach (piece) =>
+			for label, connection of piece.connections
+				result.push start.compound(connection) if !connection.connected
+			start = start.compound(piece.connections[piece.exit])
+			start = start.compound(new Transform(@track.trackGap, 0, 0))
+		result
 
 # a transform is used to move/rotate coordinate axes
 class Transform
@@ -45,9 +52,18 @@ class Transform
 
 	# return compounded transform
 	compound: (transform) ->
-		new Transform @translateX + Math.cos(@rotateRads)*transform.translateX-Math.sin(@rotateRads)*transform.translateY, 
-			@translateY + Math.sin(@rotateRads)*transform.translateX+Math.cos(@rotateRads)*transform.translateY, 
-			(300+this.rotateDegs+transform.rotateDegs)%360
+		new Transform @translateX + Math.cos(@rotateRads)*transform.translateX-Math.sin(@rotateRads)*transform.translateY,
+			@translateY + Math.sin(@rotateRads)*transform.translateX+Math.cos(@rotateRads)*transform.translateY,
+			(360+@rotateDegs+transform.rotateDegs)%360
+
+	toString: ->
+		return "("+@translateX+", "+@translateY+", "+@rotateDegs+")"
+
+# an extened Transform with a connected attribute that refers to another connection
+class Connection extends Transform
+	constructor: (@translateX, @translateY, @rotateDegs) ->
+		super @translateX, @translateY, @rotateDegs
+		@connected = null
 
 # abstract track piece
 # @connections define the transforms associated with each connection on the piece
@@ -58,21 +74,21 @@ class Piece
 		@radius = options.radius ? 1
 		@exit = options.exit ? 'B'
 		@flip = options.flip ? 1
-		@connections = { 'A' : new Transform(0, 0, -180) }
+		@connections = { 'A' : new Connection(0, 0, -180) }
 
 class Straight extends Piece
 	constructor: (@section) ->
 		super @section
-		@connections['B'] = new Transform(@size*@section.track.gridSize, 0, 0)
+		@connections['B'] = new Connection(@size*@section.track.gridSize, 0, 0)
 
 class Bend extends Piece
 	constructor: (@section) ->
 		super @section
-		@connections['B'] = new Transform(@size*@section.track.gridSize, 0, 0)
+		@connections['B'] = new Connection(@size*@section.track.gridSize, 0, 0)
 
 # export classes for use elsewhere, see http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/
-root = exports ? window  
-root.Track = Track  
+root = exports ? window
+root.Track = Track
 root.Section = Section
 root.Transform = Transform
 root.Straight = Straight
