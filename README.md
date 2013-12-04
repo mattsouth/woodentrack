@@ -21,3 +21,4 @@ Potential demos
  - get something painting
  - more piece types
  - remove need to pass section into piece constructor (make piece access to track.gridSize lazy?)
+ - focus more on Track API - track.add adds piece to top section

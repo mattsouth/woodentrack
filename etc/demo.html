@@ -5,6 +5,11 @@
 		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 		<script type="text/coffeescript" src="../src/woodentrack.coffee"></script>
 		<script type="text/coffeescript" src="../src/woodentrack.d3.coffee"></script>
+		<style>
+			svg {
+				border: 1px solid black;
+			}
+		</style>
 	</head>
 	<body>
 		<h1>Demotastic</h1>
@@ -15,6 +20,7 @@
 			section.add new Straight(section)
 			section.add new Straight(section)
 			painter = new D3TrackPainter track, '#track-canvas'
+			painter.paint()
 		</script>
 	</body>
 </html>
