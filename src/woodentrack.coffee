@@ -25,7 +25,8 @@ class Track
 	# TODO?: return index
 	add: (piece, start = null) ->
 		section =
-			if start? then @createSection start
+			if start?
+				@createSection start
 			else
 				if @sections.length>0
 					@sections[@sections.length-1]
@@ -37,7 +38,26 @@ class Track
 		# TODO
 
 	remove: (index) ->
-		# TODO
+		[sectionIndex, pieceIndex] = @getSectionAndPieceIndex index
+		@sections[sectionIndex].remove(pieceIndex)
+
+	getSectionAndPieceIndex: (index) ->
+		result = [-1,-1]
+		sectionIdx=0
+		@sections.forEach (section) ->
+			if index<section.pieces.length
+				result = [sectionIdx, index]
+			else
+				index-=section.pieces.length
+				sectionIdx++
+		result
+
+	sectionStartingIndex: (section) ->
+		result=0
+		[@sections.indexOf(section)...0].forEach (section) ->
+			result+=section.pieces.length
+		result
+
 
 	createSection: (transform = null) ->
 		section = new Section(this, transform)
@@ -47,7 +67,6 @@ class Track
 	# a section is an observable / drawable unbroken run of pieces used by a track
 	# to help keep a record of loose connections and reduce the number of cached
 	# transforms
-	# TODO: remove piece from section
 	class Section
 		constructor: (@track, @transform = new Transform(0,0,0)) ->
 			@pieces = []
@@ -64,17 +83,35 @@ class Track
 			@pieces.push piece
 			return piece
 
-		remove: (piece) ->
-			# TODO: remove piece and connect up loose ends if necessary
+		# remove idx piece and tie up loose connections
+		remove: (idx) ->
+			if typeof(idx)!="number"
+				idx = @pieces.indexOf idx
+			num_pieces = @pieces.length
+			if idx>=0 and idx<num_pieces
+				# deal with connections
+				removee = @pieces[idx]
+				if num_pieces>1
+					if idx<(num_pieces-1)
+						removee.connections[removee.exit].connected=null
+						@pieces[idx+1].connections['A'].connected=null
+					if idx>0
+						removee.connections['A'].connected=null
+						@pieces[idx-1].connections[@pieces[idx-1].exit].connected=null
+				# set removee piece section to null
+				@pieces[idx].section=null
+				# remove piece
+				@pieces.splice idx, 1
+			else
+				throw new Error("Cannot remove piece " + idx + " from section with " + @pieces.length + " pieces")
 
 		# all available (unconnected) connections
 		connections: ->
 			result = []
 			start = @transform
-			@pieces.forEach (piece) =>
-				for label, connection of piece.connections
-					result.push start.compound(connection) if !connection.connected
-				start = start.compound(piece.connections[piece.exit]).compound(new Transform(@track.trackGap, 0, 0))
+			[0...@pieces.length].forEach (idx) =>
+				for label, connection of @pieces[idx].connections
+					result.push idx.toString() + ":" + label if !connection.connected
 			result
 
 # a transform is used to move/rotate coordinate axes
@@ -111,7 +148,7 @@ class Piece
 
 	setSection: (section) ->
 		if @section?
-			section.remove this
+			@section.remove this
 		section.add this
 
 class Straight extends Piece

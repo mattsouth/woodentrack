@@ -26,7 +26,7 @@ describe 'Track', ->
 		it 'should have no sections', ->
 			track.sections.should.have.length 0
 		it 'should have no pieces', ->
-			track.sections.should.have.length 0
+			track.pieces().should.have.length 0
 		it 'should have no loose ends', ->
 			track.connections().should.have.length 0
 		it 'should have default gridSize', ->
@@ -34,27 +34,30 @@ describe 'Track', ->
 		it 'should have default trackGap', ->
 			track.trackGap.should.equal 1
 
-	describe 'track with straight piece that is tested then removed', ->
+	describe 'track with straight piece', ->
 		track = new Track
 		track.add new Straight
 		it 'should have 1 section', ->
 			track.sections.should.have.length 1
 		it 'should have 1 piece', ->
-			track.sections.should.have.length 1
+			track.pieces().should.have.length 1
 		it 'should have two loose ends', ->
 			track.connections().should.have.length 2
 		it 'should have one available connection at 0:A', ->
 			track.connections().should.include "0:A"
 		it 'should have one available connection at 0:B', ->
 			track.connections().should.include "0:B"
-		track.remove 0
-		it 'should have 1 section after removal', ->
-			track.sections.should.have.length 1
-		it 'should have no pieces after removal', ->
-			track.sections.should.have.length 0
-		it 'should have no loose ends after removal', ->
-			track.connections().should.have.length 0
 
+	describe 'track with removed straight piece', ->
+		track = new Track
+		track.add new Straight
+		track.remove 0
+		it 'should have 1 section', ->
+			track.sections.should.have.length 1
+		it 'should have no pieces', ->
+			track.pieces().should.have.length 0
+		it 'should have no loose', ->
+			track.connections().should.have.length 0
 
 	describe 'track with single piece used twice', ->
 		track = new Track
@@ -64,7 +67,7 @@ describe 'Track', ->
 		it 'should have 1 section', ->
 			track.sections.should.have.length 1
 		it 'should have 1 piece', ->
-			track.sections.should.have.length 1
+			track.pieces().should.have.length 1
 		it 'should have two loose ends', ->
 			track.connections().should.have.length 2
 		it 'should have one available connection at 0:A', ->
