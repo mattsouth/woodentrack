@@ -6,21 +6,6 @@ chai.should()
 
 describe 'Track', ->
 
-	# next three functions used in previous version and may be useful later
-	# i.e. when a getConnection('0.A') method is required
-	compareAngles = (a1, a2) ->
-		Math.abs(a1) % 360 == Math.abs(a2) % 360
-
-	compareTransforms = (t1, t2) ->
-		(t1.translateX == t2.translateX) and (t1.translateY == t2.translateY) and compareAngles(t1.rotateDegs, t2.rotateDegs)
-
-	testConnections = (conns, t) ->
-		result = false
-		conns.forEach (conn) ->
-			result = true if compareTransforms(conn, t)
-		if !result then console.log conns, t
-		result
-
 	describe 'empty track', ->
 		track = new Track
 		it 'should have no sections', ->
@@ -77,7 +62,7 @@ describe 'Track', ->
 
 	describe 'track with two straights', ->
 		track = new Track
-		[1..8].forEach -> track.add new Straight
+		[1..2].forEach -> track.add new Straight
 		it 'should have two loose ends', ->
 			track.connections().should.have.length 2
 		it 'should have one available connection at 0:A', ->

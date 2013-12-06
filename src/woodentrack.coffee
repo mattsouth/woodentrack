@@ -58,6 +58,11 @@ class Track
 			result+=section.pieces.length
 		result
 
+	# get Connection transform/connected field from connection code, e.g. "0#A"
+	connection: (code) ->
+		[index, letter] = code.split ':'
+		[sectionIndex, sectionPieceIndex] = @getSectionAndPieceIndex index
+		@sections[sectionIndex].pieces[sectionPieceIndex].connections[letter]
 
 	createSection: (transform = null) ->
 		section = new Section(this, transform)
@@ -74,12 +79,14 @@ class Track
 	 	# TODO: throw error if the exit connection is connected i.e. when section is a loop of simple pieces
 		add: (piece) ->
 			piece.section = this
+			num_pieces = @pieces.length
+			section_offset = @track.sectionStartingIndex this
 			# connect existing exit connection to piece connection A
 			if @exit?
-				@exit.connected = piece.connections['A']
 				piece.connections['A'].connected = @exit
+				@track.connection(@exit).connected = (num_pieces+section_offset).toString() + ":A"
 			# update section exit connection
-			@exit = piece.connections[piece.exit]
+			@exit = (num_pieces+section_offset).toString() + ":" + piece.exit
 			@pieces.push piece
 			return piece
 
@@ -98,6 +105,8 @@ class Track
 					if idx>0
 						removee.connections['A'].connected=null
 						@pieces[idx-1].connections[@pieces[idx-1].exit].connected=null
+				else
+					@exit=null
 				# set removee piece section to null
 				@pieces[idx].section=null
 				# remove piece
