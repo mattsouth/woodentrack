@@ -6,6 +6,8 @@ chai.should()
 
 describe 'Track', ->
 
+	# next three functions used in previous version and may be useful later
+	# i.e. when a getConnection('0.A') method is required
 	compareAngles = (a1, a2) ->
 		Math.abs(a1) % 360 == Math.abs(a2) % 360
 
@@ -22,44 +24,71 @@ describe 'Track', ->
 	describe 'empty track', ->
 		track = new Track
 		it 'should have no sections', ->
-			track.sections.length.should.equal 0
+			track.sections.should.have.length 0
+		it 'should have no pieces', ->
+			track.sections.should.have.length 0
 		it 'should have no loose ends', ->
-			track.connections().length.should.equal 0
-		it 'should have a gridSize', ->
+			track.connections().should.have.length 0
+		it 'should have default gridSize', ->
 			track.gridSize.should.equal 100
-		it 'should have a trackGap', ->
+		it 'should have default trackGap', ->
 			track.trackGap.should.equal 1
 
-	describe 'track with section', ->
+	describe 'track with straight piece that is tested then removed', ->
 		track = new Track
-		section = track.createSection()
-		it 'should have one section', ->
-			track.sections.length.should.equal 1
-		it 'section should reference track', ->
-			track.sections[0].track.should.equal track
-		it 'should have no loose ends', ->
-			track.connections().length.should.equal 0
-
-	describe 'track with straight piece', ->
-		track = new Track
-		section = track.createSection()
-		section.add new Straight(section)
+		track.add new Straight
+		it 'should have 1 section', ->
+			track.sections.should.have.length 1
+		it 'should have 1 piece', ->
+			track.sections.should.have.length 1
 		it 'should have two loose ends', ->
-			track.connections().length.should.equal 2
-		it 'should have one available connection at 0A', ->
-			check = testConnections(track.connections(), new Transform(0,0,-180))
-			check.should.be.true
-		it 'should have one available connection at 0B', ->
-			testConnections(track.connections(), new Transform((2/3)*100,0,0)).should.be.true
+			track.connections().should.have.length 2
+		it 'should have one available connection at 0:A', ->
+			track.connections().should.include "0:A"
+		it 'should have one available connection at 0:B', ->
+			track.connections().should.include "0:B"
+		track.remove 0
+		it 'should have 1 section after removal', ->
+			track.sections.should.have.length 1
+		it 'should have no pieces after removal', ->
+			track.sections.should.have.length 0
+		it 'should have no loose ends after removal', ->
+			track.connections().should.have.length 0
+
+
+	describe 'track with single piece used twice', ->
+		track = new Track
+		straight = new Straight
+		track.add straight
+		track.add straight  # this should remove and the re-add the piece
+		it 'should have 1 section', ->
+			track.sections.should.have.length 1
+		it 'should have 1 piece', ->
+			track.sections.should.have.length 1
+		it 'should have two loose ends', ->
+			track.connections().should.have.length 2
+		it 'should have one available connection at 0:A', ->
+			track.connections().should.include "0:A"
+		it 'should have one available connection at 0:B', ->
+			track.connections().should.include "0:B"
 
 	describe 'track with two straights', ->
 		track = new Track
-		section = track.createSection()
-		section.add new Straight(section)
-		section.add new Straight(section)
+		[1..8].forEach -> track.add new Straight
 		it 'should have two loose ends', ->
-			track.connections().length.should.equal 2
-		it 'should have one available connection at 0A', ->
-			testConnections(track.connections(), new Transform(0,0,-180)).should.be.true
-		it 'should have one available connection at 1B', ->
-			testConnections(track.connections(), new Transform((4/3)*100+1,0,0)).should.be.true
+			track.connections().should.have.length 2
+		it 'should have one available connection at 0:A', ->
+			track.connections().should.include "0:A"
+		it 'should have one available connection at 1:B', ->
+			track.connections().should.include "1:B"
+
+	describe 'track with eight bends', ->
+		track = new Track
+		[1..8].forEach -> track.add new Bend
+		it 'should have 1 section', ->
+			track.sections.should.have.length 1
+		it 'should have 8 pieces', ->
+			track.pieces().should.have.length 8
+		it 'should have no loose ends', ->
+			track.connections().should.have.length 0
+		# TODO: should error on adding 9th bend
