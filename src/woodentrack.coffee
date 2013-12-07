@@ -35,7 +35,7 @@ class Track
 		piece.setSection section
 
 	connect: (piece, connection) ->
-		# TODO
+		# TODO reassign section.exit to the next available connection if used by this action
 
 	remove: (index) ->
 		[sectionIndex, pieceIndex] = @getSectionAndPieceIndex index
@@ -58,7 +58,7 @@ class Track
 			result+=section.pieces.length
 		result
 
-	# get Connection transform/connected field from connection code, e.g. "0#A"
+	# get Connection transform/connected field from connection code, e.g. "0:A"
 	connection: (code) ->
 		[index, letter] = code.split ':'
 		[sectionIndex, sectionPieceIndex] = @getSectionAndPieceIndex index
@@ -76,12 +76,14 @@ class Track
 		constructor: (@track, @transform = new Transform(0,0,0)) ->
 			@pieces = []
 
-	 	# TODO: throw error if the exit connection is connected i.e. when section is a loop of simple pieces
 		add: (piece) ->
-			piece.section = this
-			num_pieces = @pieces.length
+			if @pieces.length>0 and @connections().length==0 
+				throw new Error("No available connections on this section")
+			num_pieces = @pieces.length # NB this is also the new index
 			section_offset = @track.sectionStartingIndex this
-			# connect existing exit connection to piece connection A
+			# TODO: check piece connections for collisions and bail if there are any
+			piece.section = this
+			# connect existing exit connection to new piece's connection A
 			if @exit?
 				piece.connections['A'].connected = @exit
 				@track.connection(@exit).connected = (num_pieces+section_offset).toString() + ":A"
@@ -89,6 +91,16 @@ class Track
 			@exit = (num_pieces+section_offset).toString() + ":" + piece.exit
 			@pieces.push piece
 			return piece
+
+		checkForLoops: (piece) ->
+			# check for cycle from all new potential connections
+			if @pieces.length>1
+				for label, connection of piece.connections
+					if label!='A'
+						possible = @compoundTransform(@pieces.length-1, label)
+						if transformsMeet possible, @pieces[0].connections.A
+							@pieces[0].A.connection=num_pieces + ":" + label
+							@pieces[num_pieces][label].connection="0:A"
 
 		# remove idx piece and tie up loose connections
 		remove: (idx) ->
@@ -114,7 +126,7 @@ class Track
 			else
 				throw new Error("Cannot remove piece " + idx + " from section with " + @pieces.length + " pieces")
 
-		# all available (unconnected) connections
+		# all available (unconnected) connection codes
 		connections: ->
 			result = []
 			start = @transform
@@ -122,6 +134,14 @@ class Track
 				for label, connection of @pieces[idx].connections
 					result.push idx.toString() + ":" + label if !connection.connected
 			result
+
+		# return transform associated with the nth piece's connection
+		compoundTransform: (n, connection) ->
+			start = @transform
+			gap = new Transform(@track.trackGap,0,0)
+			[0...(n-1)].forEach (pieceIndex) =>
+				start = start.compound(@pieces[pieceIndex].exitTransform()).compound(gap)
+			start.compound(@pieces[n].connections[connection]).compound(gap)
 
 # a transform is used to move/rotate coordinate axes
 class Transform
@@ -160,15 +180,25 @@ class Piece
 			@section.remove this
 		section.add this
 
+	exitTransform: ->
+		@connections[@exit]
+
 class Straight extends Piece
 	setSection: (section) ->
 		super
 		@connections['B'] = new Connection(@size*section.track.gridSize, 0, 0)
+		section.checkForLoops this
 
 class Bend extends Piece
 	setSection: (section) ->
 		super
-		@connections['B'] = new Connection(@size*@section.track.gridSize, 0, 0)
+		@connections['B'] = new Connection(Math.sin(@angle)*@section.track.gridSize, @flip*(1-Math.cos(@angle))*@section.track.gridSize, @angle*180/Math.PI)
+		section.checkForLoops this
+
+transformsMeet = (t1, t2) ->
+	result = t1.translateX == t2.translateX and t1.translateY == t2.translateY and (t1.rotateDegs % 360 == (t2.rotateDegs+180) % 360)
+	console.log "transformsMeet? " + t1.toString() + " :: " + t2.toString() + " " + result
+	result
 
 # export classes for use elsewhere, see http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/
 root = exports ? window

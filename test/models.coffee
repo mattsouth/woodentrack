@@ -37,18 +37,20 @@ describe 'Track', ->
 		track = new Track
 		track.add new Straight
 		track.remove 0
-		it 'should have 1 section', ->
+		it 'should have 1 (empty) section', ->
+			# note this is needed so that the next test works
 			track.sections.should.have.length 1
 		it 'should have no pieces', ->
 			track.pieces().should.have.length 0
 		it 'should have no loose', ->
 			track.connections().should.have.length 0
 
-	describe 'track with single piece used twice', ->
+	describe 'track with single piece used twice erroneously', ->
 		track = new Track
 		straight = new Straight
 		track.add straight
-		track.add straight  # this should remove and the re-add the piece
+		track.add straight
+		# cant use the same piece twise. piece will be removed from previous position before being added again
 		it 'should have 1 section', ->
 			track.sections.should.have.length 1
 		it 'should have 1 piece', ->
