@@ -4,7 +4,8 @@
 class Track
 	constructor: (options={}) ->
 		@gridSize = options.gridSize ? 100
-		@trackGap = options.trackGap ? 1
+		@trackGap = options.trackGap ? 0
+		@gapTransform = new Transform(@trackGap, 0, 0)
 		@sections = []
 
 	connections: ->
@@ -69,6 +70,10 @@ class Track
 		@sections.push section
 		return section
 
+	draw: (painter) ->
+		@sections.forEach (section) ->
+			section.draw painter
+
 	# a section is an observable / drawable unbroken run of pieces used by a track
 	# to help keep a record of loose connections and reduce the number of cached
 	# transforms
@@ -93,7 +98,7 @@ class Track
 			return piece
 
 		checkForLoops: (piece) ->
-			# check for cycle from all new potential connections
+			# check for cycle from all new potential connections and close them
 			if @pieces.length>1
 				for label, connection of piece.connections
 					if label!='A'
@@ -143,6 +148,12 @@ class Track
 				start = start.compound(@pieces[pieceIndex].exitTransform()).compound(gap)
 			start.compound(@pieces[n].connections[connection]).compound(gap)
 
+		draw: (painter) ->
+			start = @transform
+			@pieces.forEach (piece) =>
+				piece.draw painter, start
+				start = start.compound(piece.exitTransform()).compound(@track.gapTransform)
+
 # a transform is used to move/rotate coordinate axes
 class Transform
 	constructor: (@translateX, @translateY, @rotateDegs) ->
@@ -189,11 +200,17 @@ class Straight extends Piece
 		@connections['B'] = new Connection(@size*section.track.gridSize, 0, 0)
 		section.checkForLoops this
 
+	draw: (painter, start) ->
+		painter.drawStraight(start, @.size)
+
 class Bend extends Piece
 	setSection: (section) ->
 		super
 		@connections['B'] = new Connection(Math.sin(@angle)*@section.track.gridSize, @flip*(1-Math.cos(@angle))*@section.track.gridSize, @angle*180/Math.PI)
 		section.checkForLoops this
+
+	draw: (painter, start) ->
+		painter.drawBend(start, start.compound(@exitTransform()))
 
 transformsMeet = (t1, t2) ->
 	result = t1.translateX == t2.translateX and t1.translateY == t2.translateY and (t1.rotateDegs % 360 == (t2.rotateDegs+180) % 360)

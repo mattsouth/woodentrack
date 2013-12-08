@@ -1,0 +1,22 @@
+<html>
+	<head>
+		<title>Woodentrack demo</title>
+		<script src="../lib/coffee-script.js"></script>
+		<script src="../lib/raphael.js"></script>
+		<script type="text/coffeescript" src="../src/woodentrack.raphael.coffee"></script>
+		<script type="text/coffeescript" src="../src/woodentrack.coffee"></script>
+	</head>
+	<body>
+		<h1>Demotastic</h1>
+		<div id="track-canvas"/>
+		<script type="text/coffeescript">
+			track = new Track
+			track.add new Straight, new Transform(200, 100, 0)
+			track.add new Straight
+			[1..4].forEach => track.add new Bend
+			[1..2].forEach => track.add new Straight
+			[1..4].forEach => track.add new Bend
+			track.draw new RaphaelTrackPainter(track, 'track-canvas')
+		</script>
+	</body>
+</html>
