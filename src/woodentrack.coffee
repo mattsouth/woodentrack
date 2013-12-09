@@ -4,16 +4,22 @@
 class Track
 	constructor: (options={}) ->
 		@gridSize = options.gridSize ? 100
-		@trackGap = options.trackGap ? 0
+		@trackGap = options.trackGap ? 1
 		@gapTransform = new Transform(@trackGap, 0, 0)
 		@sections = []
 
+	draw: (painter) ->
+		@sections.forEach (section) ->
+			section.draw painter
+
+	# loose connections in track
 	connections: ->
 		result = []
 		@sections.forEach (section) ->
 			result = result.concat section.connections()
 		result
 
+	# all pieces
 	pieces: ->
 		result = []
 		@sections.forEach (section) ->
@@ -23,7 +29,7 @@ class Track
 	# Add piece to track.  Use start to specify starting transform,
 	# else the last exit connection or default transform is used
     # for the first piece.
-	# TODO?: return index
+	# TODO: check piece connections for collisions and bail if there are any
 	add: (piece, start = null) ->
 		section =
 			if start?
@@ -35,9 +41,11 @@ class Track
 					@createSection()
 		piece.setSection section
 
+	# connect piece to available connection identified from code, e.g. "10:C"
 	connect: (piece, connection) ->
 		# TODO reassign section.exit to the next available connection if used by this action
 
+	# remove indexed piece from track
 	remove: (index) ->
 		[sectionIndex, pieceIndex] = @getSectionAndPieceIndex index
 		@sections[sectionIndex].remove(pieceIndex)
@@ -70,9 +78,23 @@ class Track
 		@sections.push section
 		return section
 
-	draw: (painter) ->
-		@sections.forEach (section) ->
-			section.draw painter
+	# find and seal any closable loops
+	closeLoops: ->
+		loose = @connections()
+		[0...loose.length].forEach (idx1) =>
+			[(idx1+1)...loose.length].forEach (idx2) =>
+				trans1 = @transform(loose[idx1])
+				trans2 = @transform(loose[idx2]).compound(@gapTransform)
+				if transformsMeet trans1, trans2
+					@connection(loose[idx1]).connected = loose[idx2]
+					@connection(loose[idx2]).connected = loose[idx1]
+					@closeLoops # recurse in case there are more to find
+
+	# transform of connection wrt to track origin
+	transform: (code) ->
+		[index, label] = code.split ':'
+		[sectionIndex, sectionPieceIndex] = @getSectionAndPieceIndex index
+		@sections[sectionIndex].compoundTransform sectionPieceIndex, label 
 
 	# a section is an observable / drawable unbroken run of pieces used by a track
 	# to help keep a record of loose connections and reduce the number of cached
@@ -86,7 +108,6 @@ class Track
 				throw new Error("No available connections on this section")
 			num_pieces = @pieces.length # NB this is also the new index
 			section_offset = @track.sectionStartingIndex this
-			# TODO: check piece connections for collisions and bail if there are any
 			piece.section = this
 			# connect existing exit connection to new piece's connection A
 			if @exit?
@@ -97,23 +118,13 @@ class Track
 			@pieces.push piece
 			return piece
 
-		checkForLoops: (piece) ->
-			# check for cycle from all new potential connections and close them
-			if @pieces.length>1
-				for label, connection of piece.connections
-					if label!='A'
-						possible = @compoundTransform(@pieces.length-1, label)
-						if transformsMeet possible, @pieces[0].connections.A
-							@pieces[0].A.connection=num_pieces + ":" + label
-							@pieces[num_pieces][label].connection="0:A"
-
 		# remove idx piece and tie up loose connections
 		remove: (idx) ->
 			if typeof(idx)!="number"
 				idx = @pieces.indexOf idx
 			num_pieces = @pieces.length
 			if idx>=0 and idx<num_pieces
-				# deal with connections
+				# deal with section connections
 				removee = @pieces[idx]
 				if num_pieces>1
 					if idx<(num_pieces-1)
@@ -124,6 +135,7 @@ class Track
 						@pieces[idx-1].connections[@pieces[idx-1].exit].connected=null
 				else
 					@exit=null
+				# TODO: deal with any other track connections attached to this one
 				# set removee piece section to null
 				@pieces[idx].section=null
 				# remove piece
@@ -143,10 +155,9 @@ class Track
 		# return transform associated with the nth piece's connection
 		compoundTransform: (n, connection) ->
 			start = @transform
-			gap = new Transform(@track.trackGap,0,0)
-			[0...(n-1)].forEach (pieceIndex) =>
-				start = start.compound(@pieces[pieceIndex].exitTransform()).compound(gap)
-			start.compound(@pieces[n].connections[connection]).compound(gap)
+			[0...n].forEach (pieceIndex) =>
+				start = start.compound(@pieces[pieceIndex].exitTransform()).compound(@track.gapTransform)
+			start.compound(@pieces[n].connections[connection])
 
 		draw: (painter) ->
 			start = @transform
@@ -174,8 +185,10 @@ class Connection extends Transform
 		super @translateX, @translateY, @rotateDegs
 		@connected = null
 
-# abstract track piece
+# Abstract track piece
 # @connections define the transforms associated with each connection on the piece
+# They each have an alphabetic label and by convention, label 'A' is always the first to be attached
+# and is the origin to which the other connection transforms refer to.
 class Piece
 	constructor: (options={}) ->
 		@size = options.size ? 2/3
@@ -198,7 +211,7 @@ class Straight extends Piece
 	setSection: (section) ->
 		super
 		@connections['B'] = new Connection(@size*section.track.gridSize, 0, 0)
-		section.checkForLoops this
+		section.track.closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawStraight(start, @.size)
@@ -207,15 +220,15 @@ class Bend extends Piece
 	setSection: (section) ->
 		super
 		@connections['B'] = new Connection(Math.sin(@angle)*@section.track.gridSize, @flip*(1-Math.cos(@angle))*@section.track.gridSize, @angle*180/Math.PI)
-		section.checkForLoops this
+		section.track.closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawBend(start, start.compound(@exitTransform()))
 
 transformsMeet = (t1, t2) ->
-	result = t1.translateX == t2.translateX and t1.translateY == t2.translateY and (t1.rotateDegs % 360 == (t2.rotateDegs+180) % 360)
-	console.log "transformsMeet? " + t1.toString() + " :: " + t2.toString() + " " + result
-	result
+	(Math.round(t1.translateX) == Math.round(t2.translateX)) and 
+		(Math.round(t1.translateY) == Math.round(t2.translateY)) and 
+		(t1.rotateDegs % 360 == (t2.rotateDegs+180) % 360)
 
 # export classes for use elsewhere, see http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/
 root = exports ? window

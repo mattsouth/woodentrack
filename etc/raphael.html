@@ -17,6 +17,7 @@
 			[1..2].forEach => track.add new Straight
 			[1..4].forEach => track.add new Bend
 			track.draw new RaphaelTrackPainter(track, 'track-canvas')
+			window.track = track
 		</script>
 	</body>
 </html>

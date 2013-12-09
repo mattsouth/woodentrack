@@ -65,12 +65,30 @@ describe 'Track', ->
 	describe 'track with two straights', ->
 		track = new Track
 		[1..2].forEach -> track.add new Straight
+		compound = track.transform '1:B'
 		it 'should have two loose ends', ->
 			track.connections().should.have.length 2
 		it 'should have one available connection at 0:A', ->
 			track.connections().should.include "0:A"
 		it 'should have one available connection at 1:B', ->
 			track.connections().should.include "1:B"
+		it 'should calculate compound translateX correctly', ->
+			compound.translateX.should.equal track.trackGap + track.gridSize*2*(new Straight).size
+		it 'should calculate compound translateY correctly', ->
+			compound.translateY.should.equal 0
+		it 'should calculate compound rotateRads correctly', ->
+			compound.rotateRads.should.equal 0
+
+	describe 'track with two bends', ->
+		track = new Track
+		[1..2].forEach -> track.add new Bend
+		compound = track.transform '1:B'
+		it 'should calculate compound translateX correctly', ->
+			Math.round(compound.translateX).should.equal Math.round(track.gridSize+track.trackGap*Math.sin(Math.PI/4))
+		it 'should calculate compound translateY correctly', ->
+			Math.round(compound.translateY).should.equal Math.round(track.gridSize+track.trackGap*Math.sin(Math.PI/4))
+		it 'should calculate compound rotateDegs correctly', ->
+			compound.rotateDegs.should.equal 90
 
 	describe 'track with eight bends', ->
 		track = new Track
