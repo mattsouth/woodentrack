@@ -4,8 +4,14 @@
 class Track
 	constructor: (options={}) ->
 		@gridSize = options.gridSize ? 100
+		@trackWidth = options.trackWidth ? 16
+		@trackColor = options.trackColor ? "lightgrey"		
 		@trackGap = options.trackGap ? 1
 		@gapTransform = new Transform(@trackGap, 0, 0)
+		@railColor = options.railColor ? "white"
+		@railWidth = options.railWdith ? 2
+		@railGauge = options.railGauge ? 9
+		@showConnections = options.showConnections ? false
 		@sections = []
 
 	draw: (painter) ->
@@ -214,16 +220,27 @@ class Straight extends Piece
 		section.track.closeLoops this
 
 	draw: (painter, start) ->
-		painter.drawStraight(start, @.size)
+		painter.drawStraight start, @.size
 
 class Bend extends Piece
 	setSection: (section) ->
 		super
-		@connections['B'] = new Connection(Math.sin(@angle)*@section.track.gridSize, @flip*(1-Math.cos(@angle))*@section.track.gridSize, @angle*180/Math.PI)
+		@connections['B'] = new Connection(Math.sin(@angle)*@section.track.gridSize, @flip*(1-Math.cos(@angle))*@section.track.gridSize, @flip*@angle*180/Math.PI)
 		section.track.closeLoops this
 
 	draw: (painter, start) ->
-		painter.drawBend(start, start.compound(@exitTransform()))
+		painter.drawBend start, start.compound(@exitTransform()), @flip
+
+class Split extends Piece
+	setSection: (section) ->
+		super
+		@connections['B'] = new Connection(@size*section.track.gridSize, 0, 0)
+		@connections['C'] = new Connection(Math.sin(@angle)*@section.track.gridSize, @flip*(1-Math.cos(@angle))*@section.track.gridSize, @flip*@angle*180/Math.PI)
+		section.track.closeLoops this
+
+	draw: (painter, start) ->
+		painter.drawStraight start, @.size
+		painter.drawBend start, start.compound(@connections['C']), @flip
 
 transformsMeet = (t1, t2) ->
 	(Math.round(t1.translateX) == Math.round(t2.translateX)) and 
@@ -236,3 +253,4 @@ root.Track = Track
 root.Transform = Transform
 root.Straight = Straight
 root.Bend = Bend
+root.Split = Split

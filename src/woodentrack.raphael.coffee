@@ -8,11 +8,21 @@ class RaphaelTrackPainter
 		path = "M"+start.translateX+","+start.translateY+
 			"L"+(start.translateX+Math.cos(start.rotateRads)*size*@track.gridSize).toString()+","+
 			(start.translateY+Math.sin(start.rotateRads)*size*@track.gridSize).toString()
-		@paper.path path
+		straight = @paper.path path
+		straight.attr {
+			'stroke-width' : @track.trackWidth
+			'stroke' : @track.trackColor			
+		}
 
-	drawBend: (start, end) ->
-		path = "M"+start.translateX+","+start.translateY+" A " + @track.gridSize+"," +@track.gridSize+" 0 0 1 "+end.translateX+","+end.translateY
-		@paper.path path
-
+	drawBend: (start, end, flip) ->
+		orbit = if flip==1 then "1" else "0"
+		path = "M"+start.translateX+","+start.translateY+
+			" A " + @track.gridSize+"," +@track.gridSize+" 0 0 " + orbit + " " + end.translateX+","+end.translateY
+		console.log path
+		bend = @paper.path path
+		bend.attr {
+			'stroke-width' : @track.trackWidth
+			'stroke' : @track.trackColor			
+		}
 root = exports ? window
 root.RaphaelTrackPainter = RaphaelTrackPainter
