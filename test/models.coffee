@@ -1,8 +1,7 @@
 # see http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/
 chai = require 'chai'
 chai.should()
-{Track, Section, Transform, Straight, Bend} = require '../src/woodentrack'
-
+{Track, Section, Transform, Straight, Bend, Split} = require '../src/woodentrack'
 
 describe 'Track', ->
 
@@ -100,3 +99,10 @@ describe 'Track', ->
 		it 'should have no loose ends', ->
 			track.connections().should.have.length 0
 		# TODO: should error on adding 9th bend
+
+	describe 'track with split', ->
+		track = new Track
+		track.add new Split
+		it 'should have three connections', ->
+			track.connections().should.have.length 3
+
