@@ -5,7 +5,7 @@ class Track
 	constructor: (options={}) ->
 		@gridSize = options.gridSize ? 100
 		@trackWidth = options.trackWidth ? 16
-		@trackColor = options.trackColor ? "lightgrey"		
+		@trackColor = options.trackColor ? "lightgrey"
 		@trackGap = options.trackGap ? 1
 		@gapTransform = new Transform(@trackGap, 0, 0)
 		@railColor = options.railColor ? "white"
@@ -18,7 +18,7 @@ class Track
 		@sections.forEach (section) ->
 			section.draw painter
 
-	# loose connections in track
+	# available connection codes
 	connections: ->
 		result = []
 		@sections.forEach (section) ->
@@ -48,7 +48,11 @@ class Track
 		piece.setSection section
 
 	# connect piece to available connection identified from code, e.g. "10:C"
-	connect: (piece, connection) ->
+	connect: (piece, code) ->
+		if @connections().indexOf(code)>-1
+			@sections.forEach (section) ->
+				if section.exit = code
+					section.add piece
 		# TODO reassign section.exit to the next available connection if used by this action
 
 	# remove indexed piece from track
@@ -100,7 +104,7 @@ class Track
 	transform: (code) ->
 		[index, label] = code.split ':'
 		[sectionIndex, sectionPieceIndex] = @getSectionAndPieceIndex index
-		@sections[sectionIndex].compoundTransform sectionPieceIndex, label 
+		@sections[sectionIndex].compoundTransform sectionPieceIndex, label
 
 	# a section is an observable / drawable unbroken run of pieces used by a track
 	# to help keep a record of loose connections and reduce the number of cached
@@ -110,7 +114,7 @@ class Track
 			@pieces = []
 
 		add: (piece) ->
-			if @pieces.length>0 and @connections().length==0 
+			if @pieces.length>0 and @connections().length==0
 				throw new Error("No available connections on this section")
 			num_pieces = @pieces.length # NB this is also the new index
 			section_offset = @track.sectionStartingIndex this
@@ -243,8 +247,8 @@ class Split extends Piece
 		painter.drawBend start, start.compound(@connections['C']), @flip
 
 transformsMeet = (t1, t2) ->
-	(Math.round(t1.translateX) == Math.round(t2.translateX)) and 
-		(Math.round(t1.translateY) == Math.round(t2.translateY)) and 
+	(Math.round(t1.translateX) == Math.round(t2.translateX)) and
+		(Math.round(t1.translateY) == Math.round(t2.translateY)) and
 		(t1.rotateDegs % 360 == (t2.rotateDegs+180) % 360)
 
 # export classes for use elsewhere, see http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/

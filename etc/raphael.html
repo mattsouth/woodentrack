@@ -11,11 +11,8 @@
 		<div id="track-canvas"/>
 		<script type="text/coffeescript">
 			track = new Track
-			track.add new Split, new Transform(200, 300, 0)
 			track.add new Straight
-			[1..4].forEach => track.add new Bend({flip:-1})
-			[1..2].forEach => track.add new Straight
-			[1..4].forEach => track.add new Bend({flip:-1})
+			track.add new Straight
 			track.draw new RaphaelTrackPainter(track, 'track-canvas')
 			window.track = track
 		</script>

@@ -11,18 +11,18 @@ class RaphaelTrackPainter
 		straight = @paper.path path
 		straight.attr {
 			'stroke-width' : @track.trackWidth
-			'stroke' : @track.trackColor			
+			'stroke' : @track.trackColor
 		}
 
 	drawBend: (start, end, flip) ->
 		orbit = if flip==1 then "1" else "0"
 		path = "M"+start.translateX+","+start.translateY+
 			" A " + @track.gridSize+"," +@track.gridSize+" 0 0 " + orbit + " " + end.translateX+","+end.translateY
-		console.log path
 		bend = @paper.path path
 		bend.attr {
 			'stroke-width' : @track.trackWidth
-			'stroke' : @track.trackColor			
+			'stroke' : @track.trackColor
 		}
+
 root = exports ? window
 root.RaphaelTrackPainter = RaphaelTrackPainter

@@ -78,6 +78,19 @@ describe 'Track', ->
 		it 'should calculate compound rotateRads correctly', ->
 			compound.rotateRads.should.equal 0
 
+	describe 'track with three straights which then has the middle one removed', ->
+		track = new Track
+		[1..3].forEach -> track.add new Straight
+		track.remove 1
+		it 'should have two pieces', ->
+			track.pieces().should.have.length 2
+		it 'should have two available connections', ->
+			track.connections().should.have.length 2
+		it 'should have connection 0:B connected to 1:A', ->
+			track.pieces()[0].connections['B'].connected.should.be "1:A"
+		it 'should have connection 1:A connected to 0:B', ->
+			track.pieces()[1].connections['A'].connected.should.be "0:B"
+
 	describe 'track with two bends', ->
 		track = new Track
 		[1..2].forEach -> track.add new Bend
@@ -105,4 +118,22 @@ describe 'Track', ->
 		track.add new Split
 		it 'should have three connections', ->
 			track.connections().should.have.length 3
+		it 'should have one available connection at 0:A', ->
+			track.connections().should.include "0:A"
+		it 'should have one available connection at 0:B', ->
+			track.connections().should.include "0:B"
+		it 'should have one available connection at 0:C', ->
+			track.connections().should.include "0:C"
 
+	describe 'track with split and connected straight', ->
+		track = new Track
+		track.add new Split
+		track.connect new Straight, "0:C"
+		it 'should have three connections', ->
+			track.connections().should.have.length 3
+		it 'should have one available connection at 0:A', ->
+			track.connections().should.include "0:A"
+		it 'should have one available connection at 0:B', ->
+			track.connections().should.include "0:B"
+		it 'should have one available connection at 1:B', ->
+			track.connections().should.include "1:B"
