@@ -16,7 +16,16 @@ Potential demos
  1. simple page with empty canvas.  open console.  start building track.
  2. random track builder
  3. take existing track and click button to morph track into another layout with the same pieces and the same number of loose ends
+ 4. easy to use track drawing application
 
 ### TODO:
- - more piece types
+ - more piece types (merge, join, crossover)
+ - draw tracks and connection circles
+ - d3 painter
+ - event based painting
+ 	- console drawing demo
+ - collision checking for pieces
+	- function isWithin for piece / section / track
+	- function isEnclosed / isPartly enclosed for square 
+ - track composer demo (touch based?)
  - add directions (IN/OUT) on connections that need to be matched - i.e. IN+OUT makes a connection

@@ -1,8 +1,13 @@
 class RaphaelTrackPainter
 
-	constructor: (track, id, width=800, height=400) ->
-		@track = track;
-		@paper = Raphael(document.getElementById(id), width, height)
+	constructor: (track, id, options={}) ->
+		@track = track
+		@width = options.width ? 800
+		@height = options.height ? 400
+		@paper = Raphael(document.getElementById(id), @width, @height)
+		@trackColor = options.trackColor ? "lightgrey"
+		@railColor = options.railColor ? "white"
+		@showConnections = options.showConnections ? true
 
 	drawStraight: (start, size) ->
 		path = "M"+start.translateX+","+start.translateY+
@@ -11,7 +16,7 @@ class RaphaelTrackPainter
 		straight = @paper.path path
 		straight.attr {
 			'stroke-width' : @track.trackWidth
-			'stroke' : @track.trackColor
+			'stroke' : @trackColor
 		}
 
 	drawBend: (start, end, flip) ->
@@ -21,8 +26,11 @@ class RaphaelTrackPainter
 		bend = @paper.path path
 		bend.attr {
 			'stroke-width' : @track.trackWidth
-			'stroke' : @track.trackColor
+			'stroke' : @trackColor
 		}
+
+	drawText: (start, text) ->
+		el = @paper.text(start.translateX, start.translateY, text)
 
 root = exports ? window
 root.RaphaelTrackPainter = RaphaelTrackPainter

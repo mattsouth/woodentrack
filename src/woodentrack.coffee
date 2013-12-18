@@ -5,18 +5,18 @@ class Track
 	constructor: (options={}) ->
 		@gridSize = options.gridSize ? 100
 		@trackWidth = options.trackWidth ? 16
-		@trackColor = options.trackColor ? "lightgrey"
 		@trackGap = options.trackGap ? 1
 		@gapTransform = new Transform(@trackGap, 0, 0)
-		@railColor = options.railColor ? "white"
 		@railWidth = options.railWidth ? 2
 		@railGauge = options.railGauge ? 9
-		@showConnections = options.showConnections ? false
 		@sections = []
 
 	draw: (painter) ->
 		@sections.forEach (section) ->
 			section.draw painter
+		if painter.showConnections
+			@connections().forEach (code) =>
+				painter.drawText @transform(code), code 
 
 	# available connection codes
 	connections: ->
