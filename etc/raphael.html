@@ -11,8 +11,7 @@
 		<div id="track-canvas"/>
 		<script type="text/coffeescript">
 			track = new Track
-			track.add new Straight
-			track.add new Straight
+			track.add new Split
 			track.draw new RaphaelTrackPainter(track, 'track-canvas')
 			window.track = track
 		</script>

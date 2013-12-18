@@ -5,7 +5,7 @@ chai.should()
 
 describe 'Track', ->
 
-	describe 'empty track', ->
+	describe 'which is empty', ->
 		track = new Track
 		it 'should have no sections', ->
 			track.sections.should.have.length 0
@@ -18,7 +18,7 @@ describe 'Track', ->
 		it 'should have default trackGap', ->
 			track.trackGap.should.equal 1
 
-	describe 'track with straight piece', ->
+	describe 'with straight piece', ->
 		track = new Track
 		track.add new Straight
 		it 'should have 1 section', ->
@@ -32,7 +32,7 @@ describe 'Track', ->
 		it 'should have one available connection at 0:B', ->
 			track.connections().should.include "0:B"
 
-	describe 'track with removed straight piece', ->
+	describe 'with a single straight piece that is removed', ->
 		track = new Track
 		track.add new Straight
 		track.remove 0
@@ -44,12 +44,12 @@ describe 'Track', ->
 		it 'should have no loose', ->
 			track.connections().should.have.length 0
 
-	describe 'track with single piece used twice erroneously', ->
+	# cant use the same piece twice. piece will be removed from previous position before being added again
+	describe 'with a single piece that is added twice', ->
 		track = new Track
 		straight = new Straight
 		track.add straight
 		track.add straight
-		# cant use the same piece twise. piece will be removed from previous position before being added again
 		it 'should have 1 section', ->
 			track.sections.should.have.length 1
 		it 'should have 1 piece', ->
@@ -61,7 +61,7 @@ describe 'Track', ->
 		it 'should have one available connection at 0:B', ->
 			track.connections().should.include "0:B"
 
-	describe 'track with two straights', ->
+	describe 'with two straights', ->
 		track = new Track
 		[1..2].forEach -> track.add new Straight
 		compound = track.transform '1:B'
@@ -78,7 +78,32 @@ describe 'Track', ->
 		it 'should calculate compound rotateRads correctly', ->
 			compound.rotateRads.should.equal 0
 
-	describe 'track with three straights which then has the middle one removed', ->
+	describe 'with three straights', ->
+		track = new Track
+		[1..3].forEach -> track.add new Straight
+		it 'should have two pieces', ->
+			track.pieces().should.have.length 3
+		it 'should have two available connections', ->
+			track.connections().should.have.length 2
+		it 'should have one available connection at 0:A', ->
+			track.connections().should.include "0:A"
+		it 'should have one available connection at 2:B', ->
+			track.connections().should.include "2:B"
+
+	describe 'with three straights which then has the first one removed', ->
+		track = new Track
+		[1..3].forEach -> track.add new Straight
+		track.remove 0
+		it 'should have two pieces', ->
+			track.pieces().should.have.length 2
+		it 'should have two available connections', ->
+			track.connections().should.have.length 2
+		it 'should have one available connection at 0:A', ->
+			track.connections().should.include "0:A"
+		it 'should have one available connection at 1:B', ->
+			track.connections().should.include "1:B"
+
+	describe 'with three straights which then has the middle one removed', ->
 		track = new Track
 		[1..3].forEach -> track.add new Straight
 		track.remove 1
@@ -86,12 +111,25 @@ describe 'Track', ->
 			track.pieces().should.have.length 2
 		it 'should have two available connections', ->
 			track.connections().should.have.length 2
-		it 'should have connection 0:B connected to 1:A', ->
-			track.pieces()[0].connections['B'].connected.should.be "1:A"
-		it 'should have connection 1:A connected to 0:B', ->
-			track.pieces()[1].connections['A'].connected.should.be "0:B"
+		it 'should have one available connection at 0:A', ->
+			track.connections().should.include "0:A"
+		it 'should have one available connection at 1:B', ->
+			track.connections().should.include "1:B"
 
-	describe 'track with two bends', ->
+	describe 'with three straights which then has the last one removed', ->
+		track = new Track
+		[1..3].forEach -> track.add new Straight
+		track.remove 2
+		it 'should have two pieces', ->
+			track.pieces().should.have.length 2
+		it 'should have two available connections', ->
+			track.connections().should.have.length 2
+		it 'should have one available connection at 0:A', ->
+			track.connections().should.include "0:A"
+		it 'should have one available connection at 1:B', ->
+			track.connections().should.include "1:B"
+
+	describe 'with two bends', ->
 		track = new Track
 		[1..2].forEach -> track.add new Bend
 		compound = track.transform '1:B'
@@ -102,7 +140,7 @@ describe 'Track', ->
 		it 'should calculate compound rotateDegs correctly', ->
 			compound.rotateDegs.should.equal 90
 
-	describe 'track with eight bends', ->
+	describe 'with eight bends', ->
 		track = new Track
 		[1..8].forEach -> track.add new Bend
 		it 'should have 1 section', ->
@@ -113,7 +151,7 @@ describe 'Track', ->
 			track.connections().should.have.length 0
 		# TODO: should error on adding 9th bend
 
-	describe 'track with split', ->
+	describe 'with single split', ->
 		track = new Track
 		track.add new Split
 		it 'should have three connections', ->
@@ -125,7 +163,7 @@ describe 'Track', ->
 		it 'should have one available connection at 0:C', ->
 			track.connections().should.include "0:C"
 
-	describe 'track with split and connected straight', ->
+	describe 'with split and connected straight', ->
 		track = new Track
 		track.add new Split
 		track.connect new Straight, "0:C"

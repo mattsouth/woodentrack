@@ -9,7 +9,7 @@ class Track
 		@trackGap = options.trackGap ? 1
 		@gapTransform = new Transform(@trackGap, 0, 0)
 		@railColor = options.railColor ? "white"
-		@railWidth = options.railWdith ? 2
+		@railWidth = options.railWidth ? 2
 		@railGauge = options.railGauge ? 9
 		@showConnections = options.showConnections ? false
 		@sections = []
@@ -21,8 +21,12 @@ class Track
 	# available connection codes
 	connections: ->
 		result = []
+		offset = 0
 		@sections.forEach (section) ->
-			result = result.concat section.connections()
+			section.connections().forEach (code) ->
+				[index, letter] = code.split ':'
+				result.push (parseInt(index)+offset).toString()+":"+letter
+			offset+=section.pieces.length
 		result
 
 	# all pieces
@@ -50,10 +54,21 @@ class Track
 	# connect piece to available connection identified from code, e.g. "10:C"
 	connect: (piece, code) ->
 		if @connections().indexOf(code)>-1
-			@sections.forEach (section) ->
-				if section.exit = code
-					section.add piece
-		# TODO reassign section.exit to the next available connection if used by this action
+			# check through each of the section exits before creating a new section
+			added=false
+			@sections.forEach (section) =>
+				last = section.pieces[section.pieces.length-1]
+				lastExit = (@sectionStartingIndex(section)+section.pieces.length-1)+":"+last.exit
+				if lastExit == code
+					added=true
+					piece.setSection section
+			if !added
+				section = @createSection @connection(code)
+				piece.setSection section
+				@connection(code).connected = piece.connections['A']
+				piece.connections['A'].connected = @connection(code)
+		else
+			throw new Error(code + " is not an available connection")
 
 	# remove indexed piece from track
 	remove: (index) ->
@@ -73,8 +88,8 @@ class Track
 
 	sectionStartingIndex: (section) ->
 		result=0
-		[@sections.indexOf(section)...0].forEach (section) ->
-			result+=section.pieces.length
+		[@sections.indexOf(section)...0].forEach (idx) =>
+			result+=@sections[idx].pieces.length
 		result
 
 	# get Connection transform/connected field from connection code, e.g. "0:A"
@@ -121,10 +136,10 @@ class Track
 			piece.section = this
 			# connect existing exit connection to new piece's connection A
 			if @exit?
+				@exit.connected = piece.connections['A']
 				piece.connections['A'].connected = @exit
-				@track.connection(@exit).connected = (num_pieces+section_offset).toString() + ":A"
 			# update section exit connection
-			@exit = (num_pieces+section_offset).toString() + ":" + piece.exit
+			@exit = piece.connections[piece.exit]
 			@pieces.push piece
 			return piece
 
@@ -138,11 +153,11 @@ class Track
 				removee = @pieces[idx]
 				if num_pieces>1
 					if idx<(num_pieces-1)
-						removee.connections[removee.exit].connected=null
-						@pieces[idx+1].connections['A'].connected=null
+						@pieces[idx+1].connections['A'].connected=removee.connections['A'].connected
 					if idx>0
-						removee.connections['A'].connected=null
-						@pieces[idx-1].connections[@pieces[idx-1].exit].connected=null
+						@pieces[idx-1].connections[@pieces[idx-1].exit].connected=removee.connections[removee.exit].connected
+					removee.connections['A'].connected=null
+					removee.connections[removee.exit].connected=null
 				else
 					@exit=null
 				# TODO: deal with any other track connections attached to this one
@@ -219,8 +234,8 @@ class Piece
 
 class Straight extends Piece
 	setSection: (section) ->
-		super
 		@connections['B'] = new Connection(@size*section.track.gridSize, 0, 0)
+		super
 		section.track.closeLoops this
 
 	draw: (painter, start) ->
@@ -228,8 +243,8 @@ class Straight extends Piece
 
 class Bend extends Piece
 	setSection: (section) ->
+		@connections['B'] = new Connection(Math.sin(@angle)*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*180/Math.PI)
 		super
-		@connections['B'] = new Connection(Math.sin(@angle)*@section.track.gridSize, @flip*(1-Math.cos(@angle))*@section.track.gridSize, @flip*@angle*180/Math.PI)
 		section.track.closeLoops this
 
 	draw: (painter, start) ->
@@ -237,9 +252,9 @@ class Bend extends Piece
 
 class Split extends Piece
 	setSection: (section) ->
-		super
 		@connections['B'] = new Connection(@size*section.track.gridSize, 0, 0)
-		@connections['C'] = new Connection(Math.sin(@angle)*@section.track.gridSize, @flip*(1-Math.cos(@angle))*@section.track.gridSize, @flip*@angle*180/Math.PI)
+		@connections['C'] = new Connection(Math.sin(@angle)*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*180/Math.PI)
+		super
 		section.track.closeLoops this
 
 	draw: (painter, start) ->
