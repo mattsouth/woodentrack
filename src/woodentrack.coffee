@@ -16,7 +16,7 @@ class Track
 			section.draw painter
 		if painter.showConnections
 			@connections().forEach (code) =>
-				painter.drawText @transform(code), code 
+				painter.drawText @transform(code), code
 
 	# available connection codes
 	connections: ->
@@ -261,6 +261,36 @@ class Split extends Piece
 		painter.drawStraight start, @.size
 		painter.drawBend start, start.compound(@connections['C']), @flip
 
+class Join extends Piece
+	setSection: (section) ->
+		@connections['B'] = new Connection(@size*section.track.gridSize, 0, 0)
+		@connections['C'] = new Connection((1-Math.sin(@angle))*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*3*180/Math.PI)
+		super
+		section.track.closeLoops this
+
+	draw: (painter, start) ->
+		painter.drawStraight start, @.size
+		back = start.compound(@exitTransform()).compound(new Transform(0,0,180))
+		painter.drawBend back, start.compound(@connections.C), @flip
+
+class Merge extends Piece
+	setSection: (section) ->
+		@connections['B'] = new Connection(Math.sin(@angle)*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*180/Math.PI)
+		super
+		section.track.closeLoops this
+
+	draw: (painter, start) ->
+		painter.drawBend start, start.compound(@exitTransform()), @flip
+
+class Crossover extends Piece
+	setSection: (section) ->
+		@connections['B'] = new Connection(Math.sin(@angle)*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*180/Math.PI)
+		super
+		section.track.closeLoops this
+
+	draw: (painter, start) ->
+		painter.drawBend start, start.compound(@exitTransform()), @flip
+
 transformsMeet = (t1, t2) ->
 	(Math.round(t1.translateX) == Math.round(t2.translateX)) and
 		(Math.round(t1.translateY) == Math.round(t2.translateY)) and
@@ -273,3 +303,6 @@ root.Transform = Transform
 root.Straight = Straight
 root.Bend = Bend
 root.Split = Split
+root.Join = Join
+root.Merge = Merge
+root.Crossover = Crossover
