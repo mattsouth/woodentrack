@@ -1,0 +1,18 @@
+<html>
+	<head>
+		<title>Woodentrack demo</title>
+		<script src="../lib/raphael.js"></script>
+		<script type="text/javacript" src="../src/woodentrack.raphael.js"></script>
+		<script type="text/javascript" src="../src/woodentrack.js"></script>
+	</head>
+	<body>
+		<h1>Demotastic</h1>
+		<div id="track-canvas"/>
+		<script type="text/javascript">
+			var track = new Track
+			track.add(new Split, new Transform(100, 100, 0))
+			track.draw new RaphaelTrackPainter track, 'track-canvas'
+			window.track = track
+		</script>
+	</body>
+</html>

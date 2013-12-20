@@ -29,16 +29,17 @@ class Track
 			offset+=section.pieces.length
 		result
 
-	# all pieces
+	# all track pieces
 	pieces: ->
 		result = []
 		@sections.forEach (section) ->
 			result = result.concat section.pieces
 		result
 
-	# Add piece to track.  Use start to specify starting transform,
-	# else the last exit connection or default transform is used
-    # for the first piece.
+	# Add piece to track.
+	# Use start transform to specify position/orientation of piece.
+	# If no start provided, the last piece's exit connection will be used.
+	# If no pieces in track, the default transform is used.
 	# TODO: check piece connections for collisions and bail if there are any
 	add: (piece, start = null) ->
 		section =
@@ -51,7 +52,8 @@ class Track
 					@createSection()
 		piece.setSection section
 
-	# connect piece to available connection identified from code, e.g. "10:C"
+	# Connect piece to available connection identified from code, e.g. "10:C".
+	# Throws Error if specified connection not available.
 	connect: (piece, code) ->
 		if @connections().indexOf(code)>-1
 			# check through each of the section exits before creating a new section
@@ -204,7 +206,7 @@ class Transform
 	toString: ->
 		return "("+@translateX+", "+@translateY+", "+@rotateDegs+")"
 
-# an extended Transform with a connected attribute that refers to another connection
+# an extended Transform with a pointer to another connection
 class Connection extends Transform
 	constructor: (@translateX, @translateY, @rotateDegs) ->
 		super @translateX, @translateY, @rotateDegs
@@ -234,7 +236,7 @@ class Piece
 
 class Straight extends Piece
 	setSection: (section) ->
-		@connections['B'] = new Connection(@size*section.track.gridSize, 0, 0)
+		@connections.B = new Connection(@size*section.track.gridSize, 0, 0)
 		super
 		section.track.closeLoops this
 
@@ -243,7 +245,10 @@ class Straight extends Piece
 
 class Bend extends Piece
 	setSection: (section) ->
-		@connections['B'] = new Connection(Math.sin(@angle)*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*180/Math.PI)
+		@connections.B = new Connection(
+			Math.sin(@angle)*section.track.gridSize,
+			@flip*(1-Math.cos(@angle))*section.track.gridSize,
+			@flip*@angle*180/Math.PI)
 		super
 		section.track.closeLoops this
 
@@ -252,8 +257,11 @@ class Bend extends Piece
 
 class Split extends Piece
 	setSection: (section) ->
-		@connections['B'] = new Connection(@size*section.track.gridSize, 0, 0)
-		@connections['C'] = new Connection(Math.sin(@angle)*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*180/Math.PI)
+		@connections.B = new Connection(@size*section.track.gridSize, 0, 0)
+		@connections.C = new Connection(
+			Math.sin(@angle)*section.track.gridSize,
+			@flip*(1-Math.cos(@angle))*section.track.gridSize,
+			@flip*@angle*180/Math.PI)
 		super
 		section.track.closeLoops this
 
@@ -263,8 +271,11 @@ class Split extends Piece
 
 class Join extends Piece
 	setSection: (section) ->
-		@connections['B'] = new Connection(@size*section.track.gridSize, 0, 0)
-		@connections['C'] = new Connection(((2/3)-Math.sin(@angle))*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*3*180/Math.PI)
+		@connections.B = new Connection(@size*section.track.gridSize, 0, 0)
+		@connections.C = new Connection(
+			((2/3)-Math.sin(@angle))*section.track.gridSize,
+			@flip*(1-Math.cos(@angle))*section.track.gridSize,
+			@flip*@angle*3*180/Math.PI)
 		super
 		section.track.closeLoops this
 
@@ -275,8 +286,14 @@ class Join extends Piece
 
 class Merge extends Piece
 	setSection: (section) ->
-		@connections['B'] = new Connection(Math.sin(@angle)*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*180/Math.PI)
-		@connections['C'] = new Connection(section.track.gridSize*(Math.sin(@angle)-(2*Math.cos(@angle)/3)), @flip*section.track.gridSize*(1-Math.cos(@angle)-(2*Math.sin(@angle)/3)), @flip*((@angle*180/Math.PI)-180))
+		@connections.B = new Connection(
+			Math.sin(@angle)*section.track.gridSize,
+			@flip*(1-Math.cos(@angle))*section.track.gridSize,
+			@flip*@angle*180/Math.PI)
+		@connections.C = new Connection(
+			section.track.gridSize*(Math.sin(@angle)-(2*Math.cos(@angle)/3)),
+			@flip*section.track.gridSize*(1-Math.cos(@angle)-(2*Math.sin(@angle)/3)),
+			@flip*((@angle*180/Math.PI)-180))
 		super
 		section.track.closeLoops this
 
@@ -286,22 +303,33 @@ class Merge extends Piece
 
 class Crossover extends Piece
 	setSection: (section) ->
-		@connections.B = new Connection(Math.sin(@angle)*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*180/Math.PI)
-		@connections.C = new Connection(2*section.track.gridSize*Math.sin(@angle/2), @flip*2*section.track.gridSize*(1-Math.cos(@angle/2)),0)
-		@connections.D = new Connection(section.track.gridSize*(2*Math.sin(@angle/2)-Math.sin(@angle)), @flip*section.track.gridSize*(1-(2*Math.cos(@angle/2))+Math.cos(@angle)), @flip*((@angle*180/Math.PI)-180))
+		@connections.B = new Connection(
+			Math.sin(@angle)*section.track.gridSize,
+			@flip*(1-Math.cos(@angle))*section.track.gridSize,
+			@flip*@angle*180/Math.PI)
+		@connections.C = new Connection(
+			2*section.track.gridSize*Math.sin(@angle/2),
+			@flip*2*section.track.gridSize*(1-Math.cos(@angle/2)),
+			0)
+		@connections.D = new Connection(
+			section.track.gridSize*(2*Math.sin(@angle/2)-Math.sin(@angle)),
+			@flip*section.track.gridSize*(1-(2*Math.cos(@angle/2))+Math.cos(@angle)),
+			@flip*((@angle*180/Math.PI)-180))
 		super
 		section.track.closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
-		painter.drawBend start.compound(@connections.C), start.compound(@connections.D), @flip
+		painter.drawBend start.compound(@connections.C),
+			start.compound(@connections.D), @flip
 
 transformsMeet = (t1, t2) ->
 	(Math.round(t1.translateX) == Math.round(t2.translateX)) and
 		(Math.round(t1.translateY) == Math.round(t2.translateY)) and
 		(t1.rotateDegs % 360 == (t2.rotateDegs+180) % 360)
 
-# export classes for use elsewhere, see http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/
+# export classes for use elsewhere,
+# see http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/
 root = exports ? window
 root.Track = Track
 root.Transform = Transform
