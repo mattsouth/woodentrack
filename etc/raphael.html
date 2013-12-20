@@ -10,13 +10,14 @@
 		<h1>Demotastic</h1>
 		<div id="track-canvas"/>
 		<script type="text/coffeescript">
-			track = new Track
+			track = new Track {trackWidth: 8}
 			track.add new Split, new Transform 100, 100, 0
 			track.add new Straight
 			track.add new Bend
-			track.add new Join
-			track.add new Merge
+			track.add new Join({flip:-1})
+			track.add new Merge({flip:-1})
 			track.add new Crossover
+			track.connect new Crossover({flip:-1}), "0:C"
 			track.draw new RaphaelTrackPainter track, 'track-canvas'
 			window.track = track
 		</script>

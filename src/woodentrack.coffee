@@ -63,7 +63,7 @@ class Track
 					added=true
 					piece.setSection section
 			if !added
-				section = @createSection @connection(code)
+				section = @createSection @transform(code).compound(@gapTransform)
 				piece.setSection section
 				@connection(code).connected = piece.connections['A']
 				piece.connections['A'].connected = @connection(code)
@@ -168,7 +168,7 @@ class Track
 			else
 				throw new Error("Cannot remove piece " + idx + " from section with " + @pieces.length + " pieces")
 
-		# all available (unconnected) connection codes
+		# all available (section scope) connection codes
 		connections: ->
 			result = []
 			start = @transform
@@ -258,38 +258,43 @@ class Split extends Piece
 		section.track.closeLoops this
 
 	draw: (painter, start) ->
-		painter.drawStraight start, @.size
+		painter.drawStraight start, @size
 		painter.drawBend start, start.compound(@connections['C']), @flip
 
 class Join extends Piece
 	setSection: (section) ->
 		@connections['B'] = new Connection(@size*section.track.gridSize, 0, 0)
-		@connections['C'] = new Connection((1-Math.sin(@angle))*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*3*180/Math.PI)
+		@connections['C'] = new Connection(((2/3)-Math.sin(@angle))*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*3*180/Math.PI)
 		super
 		section.track.closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawStraight start, @.size
 		back = start.compound(@exitTransform()).compound(new Transform(0,0,180))
-		painter.drawBend back, start.compound(@connections.C), @flip
+		painter.drawBend start.compound(@connections.C), back, @flip
 
 class Merge extends Piece
 	setSection: (section) ->
 		@connections['B'] = new Connection(Math.sin(@angle)*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*180/Math.PI)
+		@connections['C'] = new Connection(section.track.gridSize*(Math.sin(@angle)-(2*Math.cos(@angle)/3)), @flip*section.track.gridSize*(1-Math.cos(@angle)-(2*Math.sin(@angle)/3)), @flip*((@angle*180/Math.PI)-180))
 		super
 		section.track.closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
+		painter.drawStraight start.compound(@connections.C).compound(new Transform(0,0,180)), @size
 
 class Crossover extends Piece
 	setSection: (section) ->
-		@connections['B'] = new Connection(Math.sin(@angle)*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*180/Math.PI)
+		@connections.B = new Connection(Math.sin(@angle)*section.track.gridSize, @flip*(1-Math.cos(@angle))*section.track.gridSize, @flip*@angle*180/Math.PI)
+		@connections.C = new Connection(2*section.track.gridSize*Math.sin(@angle/2), @flip*2*section.track.gridSize*(1-Math.cos(@angle/2)),0)
+		@connections.D = new Connection(section.track.gridSize*(2*Math.sin(@angle/2)-Math.sin(@angle)), @flip*section.track.gridSize*(1-(2*Math.cos(@angle/2))+Math.cos(@angle)), @flip*((@angle*180/Math.PI)-180))
 		super
 		section.track.closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
+		painter.drawBend start.compound(@connections.C), start.compound(@connections.D), @flip
 
 transformsMeet = (t1, t2) ->
 	(Math.round(t1.translateX) == Math.round(t2.translateX)) and
