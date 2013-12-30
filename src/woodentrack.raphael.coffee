@@ -8,8 +8,11 @@ class RaphaelTrackPainter
 		@trackColor = options.trackColor ? "lightgrey"
 		@railColor = options.railColor ? "white"
 		@showConnections = options.showConnections ? true
+		@railWidth = options.railWidth ? 2
+		@railGauge = options.railGauge ? 9
 
 	drawStraight: (start, size) ->
+		# draw track
 		path = "M"+start.translateX+","+start.translateY+
 			"L"+(start.translateX+Math.cos(start.rotateRads)*size*@track.gridSize).toString()+","+
 			(start.translateY+Math.sin(start.rotateRads)*size*@track.gridSize).toString()
@@ -18,6 +21,7 @@ class RaphaelTrackPainter
 			'stroke-width' : @track.trackWidth
 			'stroke' : @trackColor
 		}
+		# TODO: draw rails
 
 	drawBend: (start, end, flip) ->
 		orbit = if flip==1 then "1" else "0"

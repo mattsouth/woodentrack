@@ -7,8 +7,6 @@ class Track
 		@trackWidth = options.trackWidth ? 16
 		@trackGap = options.trackGap ? 1
 		@gapTransform = new Transform(@trackGap, 0, 0)
-		@railWidth = options.railWidth ? 2
-		@railGauge = options.railGauge ? 9
 		@sections = []
 
 	draw: (painter) ->

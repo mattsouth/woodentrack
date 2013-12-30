@@ -19,7 +19,6 @@ Potential demos
  4. easy to use track drawing application
 
 ### TODO:
- - more piece types (merge, join, crossover)
  - draw tracks and connection circles
  - d3 painter
  - event based painting
