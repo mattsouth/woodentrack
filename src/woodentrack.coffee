@@ -240,6 +240,7 @@ class Straight extends Piece
 
 	draw: (painter, start) ->
 		painter.drawStraight start, @.size
+		painter.drawStraightRails start, @.size
 
 class Bend extends Piece
 	setSection: (section) ->
@@ -252,6 +253,7 @@ class Bend extends Piece
 
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
+		painter.drawBendRails start, start.compound(@exitTransform()), @flip
 
 class Split extends Piece
 	setSection: (section) ->
@@ -266,6 +268,8 @@ class Split extends Piece
 	draw: (painter, start) ->
 		painter.drawStraight start, @size
 		painter.drawBend start, start.compound(@connections['C']), @flip
+		painter.drawStraightRails start, @size
+		painter.drawBendRails start, start.compound(@connections['C']), @flip
 
 class Join extends Piece
 	setSection: (section) ->
@@ -281,6 +285,9 @@ class Join extends Piece
 		painter.drawStraight start, @.size
 		back = start.compound(@exitTransform()).compound(new Transform(0,0,180))
 		painter.drawBend start.compound(@connections.C), back, @flip
+		painter.drawStraightRails start, @.size
+		back = start.compound(@exitTransform()).compound(new Transform(0,0,180))
+		painter.drawBendRails start.compound(@connections.C), back, @flip
 
 class Merge extends Piece
 	setSection: (section) ->
@@ -298,6 +305,8 @@ class Merge extends Piece
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
 		painter.drawStraight start.compound(@connections.C).compound(new Transform(0,0,180)), @size
+		painter.drawBendRails start, start.compound(@exitTransform()), @flip
+		painter.drawStraightRails start.compound(@connections.C).compound(new Transform(0,0,180)), @size
 
 class Crossover extends Piece
 	setSection: (section) ->
@@ -319,6 +328,9 @@ class Crossover extends Piece
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
 		painter.drawBend start.compound(@connections.C),
+			start.compound(@connections.D), @flip
+		painter.drawBendRails start, start.compound(@exitTransform()), @flip
+		painter.drawBendRails start.compound(@connections.C).compound(new Transform(0,0,180)),
 			start.compound(@connections.D), @flip
 
 transformsMeet = (t1, t2) ->
