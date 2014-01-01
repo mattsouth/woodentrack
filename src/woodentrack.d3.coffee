@@ -26,6 +26,9 @@ class D3TrackPainter extends TrackPainter
 	drawText: (start, text) ->
 		@svg.append("text").text(text).attr("x", start.translateX).attr("y", start.translateY)
 
+	drawNobble: (start) ->
+		@svg.append("circle").attr("r", 2).attr("stroke-width", 0).attr("fill", "white").attr("cx",start.translateX).attr("cy",start.translateY)
+
 	drawBendLine: (start, end, flip, radius, width, color) ->
 		orbit = if flip==1 then "1" else "0"
 		path = "M" + start.translateX.toFixed(2) + "," + start.translateY.toFixed(2) +

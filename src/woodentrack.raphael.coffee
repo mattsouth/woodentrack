@@ -2,6 +2,8 @@ class RaphaelTrackPainter extends TrackPainter
 
 	constructor: (track, id, options={}) ->
 		super track, id, options
+		@width = options.width ? 800
+		@height = options.height ? 400
 		@paper = Raphael(document.getElementById(id), @width, @height)
 
 	drawStraight: (start, size) ->
@@ -41,6 +43,13 @@ class RaphaelTrackPainter extends TrackPainter
 
 	drawText: (start, text) ->
 		el = @paper.text(start.translateX, start.translateY, text)
+
+	drawNobble: (start) ->
+		el = @paper.circle(start.translateX, start.translateY, 2)
+		el.attr {
+			'fill' : 'white'
+			'stroke' : 'none'
+		}
 
 	drawLine = (paper, startX, startY, endX, endY, width, color) ->
 		path = "M"+startX+","+startY+"L"+endX+","+endY

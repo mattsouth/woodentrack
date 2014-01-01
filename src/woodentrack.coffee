@@ -12,7 +12,7 @@ class Track
 	draw: (painter) ->
 		@sections.forEach (section) ->
 			section.draw painter
-		if painter.showConnections
+		if painter.showAnnotations
 			@connections().forEach (code) =>
 				painter.drawText @transform(code), code
 
@@ -193,11 +193,9 @@ class Track
 class TrackPainter
 	constructor: (track, id, options={}) ->
 		@track = track
-		@width = options.width ? 800
-		@height = options.height ? 400
 		@trackColor = options.trackColor ? "lightgrey"
 		@railColor = options.railColor ? "white"
-		@showConnections = options.showConnections ? true
+		@showAnnotations = options.showAnnotations ? true
 		@railWidth = options.railWidth ? 2
 		@railGauge = options.railGauge ? 9
 
@@ -243,6 +241,10 @@ class Piece
 	exitTransform: ->
 		@connections[@exit]
 
+	draw: (painter, start) ->
+		conns = for label, conn of @connections
+			painter.drawNobble start.compound(conn)
+
 class Straight extends Piece
 	setSection: (section) ->
 		@connections.B = new Connection(@size*section.track.gridSize, 0, 0)
@@ -252,6 +254,7 @@ class Straight extends Piece
 	draw: (painter, start) ->
 		painter.drawStraight start, @.size
 		painter.drawStraightRails start, @.size
+		super painter, start
 
 class Bend extends Piece
 	setSection: (section) ->
@@ -265,6 +268,7 @@ class Bend extends Piece
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
 		painter.drawBendRails start, start.compound(@exitTransform()), @flip
+		super painter, start
 
 class Split extends Piece
 	setSection: (section) ->
@@ -281,6 +285,7 @@ class Split extends Piece
 		painter.drawBend start, start.compound(@connections['C']), @flip
 		painter.drawStraightRails start, @size
 		painter.drawBendRails start, start.compound(@connections['C']), @flip
+		super painter, start
 
 class Join extends Piece
 	setSection: (section) ->
@@ -299,6 +304,7 @@ class Join extends Piece
 		painter.drawStraightRails start, @.size
 		back = start.compound(@exitTransform()).compound(new Transform(0,0,180))
 		painter.drawBendRails start.compound(@connections.C), back, @flip
+		super painter, start
 
 class Merge extends Piece
 	setSection: (section) ->
@@ -318,6 +324,7 @@ class Merge extends Piece
 		painter.drawStraight start.compound(@connections.C).compound(new Transform(0,0,180)), @size
 		painter.drawBendRails start, start.compound(@exitTransform()), @flip
 		painter.drawStraightRails start.compound(@connections.C).compound(new Transform(0,0,180)), @size
+		super painter, start
 
 class Crossover extends Piece
 	setSection: (section) ->
@@ -343,6 +350,7 @@ class Crossover extends Piece
 		painter.drawBendRails start, start.compound(@exitTransform()), @flip
 		painter.drawBendRails start.compound(@connections.C).compound(new Transform(0,0,180)),
 			start.compound(@connections.D), @flip
+		super painter, start
 
 transformsMeet = (t1, t2) ->
 	(Math.round(t1.translateX) == Math.round(t2.translateX)) and
