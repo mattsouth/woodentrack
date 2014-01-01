@@ -1,15 +1,8 @@
-class RaphaelTrackPainter
+class RaphaelTrackPainter extends TrackPainter
 
 	constructor: (track, id, options={}) ->
-		@track = track
-		@width = options.width ? 800
-		@height = options.height ? 400
+		super track, id, options
 		@paper = Raphael(document.getElementById(id), @width, @height)
-		@trackColor = options.trackColor ? "lightgrey"
-		@railColor = options.railColor ? "white"
-		@showConnections = options.showConnections ? true
-		@railWidth = options.railWidth ? 2
-		@railGauge = options.railGauge ? 9
 
 	drawStraight: (start, size) ->
 		drawLine @paper, start.translateX, start.translateY, 

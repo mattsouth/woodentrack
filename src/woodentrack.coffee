@@ -190,6 +190,17 @@ class Track
 				piece.draw painter, start
 				start = start.compound(piece.exitTransform()).compound(@track.gapTransform)
 
+class TrackPainter
+	constructor: (track, id, options={}) ->
+		@track = track
+		@width = options.width ? 800
+		@height = options.height ? 400
+		@trackColor = options.trackColor ? "lightgrey"
+		@railColor = options.railColor ? "white"
+		@showConnections = options.showConnections ? true
+		@railWidth = options.railWidth ? 2
+		@railGauge = options.railGauge ? 9
+
 # a transform is used to move/rotate coordinate axes
 class Transform
 	constructor: (@translateX, @translateY, @rotateDegs) ->
@@ -342,6 +353,7 @@ transformsMeet = (t1, t2) ->
 # see http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/
 root = exports ? window
 root.Track = Track
+root.TrackPainter = TrackPainter
 root.Transform = Transform
 root.Straight = Straight
 root.Bend = Bend
