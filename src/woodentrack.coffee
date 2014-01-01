@@ -190,8 +190,9 @@ class Track
 				piece.draw painter, start
 				start = start.compound(piece.exitTransform()).compound(@track.gapTransform)
 
+# Abstract class for defining a painter see woodentrack.raphael.coffee and woodentrack.d3.coffee
 class TrackPainter
-	constructor: (track, id, options={}) ->
+	constructor: (track, options={}) ->
 		@track = track
 		@trackColor = options.trackColor ? "lightgrey"
 		@railColor = options.railColor ? "white"

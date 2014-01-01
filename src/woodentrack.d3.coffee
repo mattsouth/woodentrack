@@ -1,6 +1,8 @@
+# Track Painter that uses D3 (http://www.d3js.org) to draw track
+# requires an svg node in the document with the passed id
 class D3TrackPainter extends TrackPainter
 	constructor: (track, id, options={}) ->
-		super track, id, options
+		super track, options
 		@svg = d3.select('#'+id)
 
 	drawStraight: (start, size) ->

@@ -1,7 +1,9 @@
+# Track painter that uses raphael (http://www.raphaeljs.com) to draw track
+# requires a div with the passed id to be present in the document
 class RaphaelTrackPainter extends TrackPainter
 
 	constructor: (track, id, options={}) ->
-		super track, id, options
+		super track, options
 		@width = options.width ? 800
 		@height = options.height ? 400
 		@paper = Raphael(document.getElementById(id), @width, @height)

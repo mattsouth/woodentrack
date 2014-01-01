@@ -19,8 +19,6 @@ Potential demos
  4. easy to use track drawing application
 
 ### TODO:
- - draw tracks and connection circles
- - d3 painter
  - event based painting
  	- console drawing demo
  - collision checking for pieces
