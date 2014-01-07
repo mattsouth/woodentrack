@@ -1,6 +1,6 @@
 # a track is an observable / drawable model of a woooden train track comprising
 # multiple pieces of different types connected together
-# TODO: make observable
+# see http://www.nczonline.net/blog/2010/03/09/custom-events-in-javascript/ for observable
 class Track
 	constructor: (options={}) ->
 		@gridSize = options.gridSize ? 100
@@ -8,6 +8,21 @@ class Track
 		@trackGap = options.trackGap ? 1
 		@gapTransform = new Transform(@trackGap, 0, 0)
 		@sections = []
+		@_listeners = {}
+
+	on: (event, listener) ->
+		if !@_listeners.event then @_listeners.event = []
+		@_listeners[event].push(listener)
+
+	off: (event, listener) ->
+		@_listeners[event].splice(idx, 1) for l, idx in @_listeners[event] when l==listener
+
+	fire: (event) ->
+		if typeof event == "string" then event = { type: event }
+		if !event.target then event.target = @
+		if !event.type then throw new Error "Event missing 'type' property."
+		if @._listeners[event.type] instanceof Array
+			@._listeners[event.type].forEach (listener) -> listener.call(this, event)
 
 	draw: (painter) ->
 		@sections.forEach (section) ->
@@ -49,6 +64,7 @@ class Track
 				else
 					@createSection()
 		piece.setSection section
+		fire { type: 'pieceadded', target: piece }
 
 	# Connect piece to available connection identified from code, e.g. "10:C".
 	# Throws Error if specified connection not available.
