@@ -19,7 +19,11 @@ Potential demos
  4. easy to use track drawing application
 
 ### TODO:
+ - try litcoffee extensions for better documention
+ - try http://coffeedoc.info/
  - event based painting
+ 	- 'removed' event
+ 	- annotations on/off
  	- console drawing demo
  - collision checking for pieces
 	- function isWithin for piece / section / track

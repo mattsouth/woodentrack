@@ -4,6 +4,12 @@ class D3TrackPainter extends TrackPainter
 	constructor: (track, id, options={}) ->
 		super track, options
 		@svg = d3.select('#'+id)
+		track.on 'added', @
+
+	call: (track, event) -> 
+		switch event.type
+			when "added"
+				event.target.draw @, event.start
 
 	drawStraight: (start, size) ->
 		@drawStraightLine start, size*@track.gridSize, @track.trackWidth, @trackColor

@@ -20,7 +20,8 @@ describe 'Track', ->
 
 	describe 'with straight piece', ->
 		track = new Track
-		track.add new Straight
+		straight = new Straight
+		track.add straight
 		it 'should have 1 section', ->
 			track.sections.should.have.length 1
 		it 'should have 1 piece', ->
@@ -31,6 +32,8 @@ describe 'Track', ->
 			track.connections().should.include "0:A"
 		it 'should have one available connection at 0:B', ->
 			track.connections().should.include "0:B"
+		it 'should return index 0 when tested against the piece', ->
+			track.index(straight).should.equal 0
 
 	describe 'with a single straight piece that is removed', ->
 		track = new Track

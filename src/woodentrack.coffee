@@ -1,29 +1,32 @@
 # a track is an observable / drawable model of a woooden train track comprising
 # multiple pieces of different types connected together
-# see http://www.nczonline.net/blog/2010/03/09/custom-events-in-javascript/ for observable
+# see http://www.nczonline.net/blog/2010/03/09/custom-events-in-javascript/ for observable template
 class Track
 	constructor: (options={}) ->
 		@gridSize = options.gridSize ? 100
 		@trackWidth = options.trackWidth ? 16
 		@trackGap = options.trackGap ? 1
-		@gapTransform = new Transform(@trackGap, 0, 0)
+		@_gapTransform = new Transform(@trackGap, 0, 0)
 		@sections = []
 		@_listeners = {}
 
-	on: (event, listener) ->
-		if !@_listeners.event then @_listeners.event = []
-		@_listeners[event].push(listener)
+	# attach listener to particular type of event, e.g. "added", "removed", "moved"
+	on: (type, listener) ->
+		if !@_listeners.type then @_listeners[type] = []
+		@_listeners[type].push(listener)
 
-	off: (event, listener) ->
-		@_listeners[event].splice(idx, 1) for l, idx in @_listeners[event] when l==listener
+	# unattach listener from particular type of event
+	off: (type, listener) ->
+		@_listeners[type].splice(idx, 1) for l, idx in @_listeners[type] when l==listener
 
-	fire: (event) ->
+	_fire: (event) ->
 		if typeof event == "string" then event = { type: event }
 		if !event.target then event.target = @
 		if !event.type then throw new Error "Event missing 'type' property."
 		if @._listeners[event.type] instanceof Array
 			@._listeners[event.type].forEach (listener) -> listener.call(this, event)
 
+	# draw track with painter
 	draw: (painter) ->
 		@sections.forEach (section) ->
 			section.draw painter
@@ -57,14 +60,14 @@ class Track
 	add: (piece, start = null) ->
 		section =
 			if start?
-				@createSection start
+				@_createSection start
 			else
 				if @sections.length>0
 					@sections[@sections.length-1]
 				else
-					@createSection()
+					@_createSection()
 		piece.setSection section
-		fire { type: 'pieceadded', target: piece }
+		@_firePieceAdded piece
 
 	# Connect piece to available connection identified from code, e.g. "10:C".
 	# Throws Error if specified connection not available.
@@ -78,20 +81,27 @@ class Track
 				if lastExit == code
 					added=true
 					piece.setSection section
+					@_firePieceAdded piece
 			if !added
-				section = @createSection @transform(code).compound(@gapTransform)
+				section = @_createSection @transform(code).compound(@_gapTransform)
 				piece.setSection section
 				@connection(code).connected = piece.connections['A']
 				piece.connections['A'].connected = @connection(code)
+				@_firePieceAdded piece
 		else
 			throw new Error(code + " is not an available connection")
 
+	_firePieceAdded: (piece) ->
+		idx = @index piece
+		transform = @transform(idx.toString() + ":A")
+		@_fire { type: 'added', target: piece, start: transform.compound(new Transform(0,0,180)) }		
+
 	# remove indexed piece from track
 	remove: (index) ->
-		[sectionIndex, pieceIndex] = @getSectionAndPieceIndex index
+		[sectionIndex, pieceIndex] = @sectionAndPieceIndex index
 		@sections[sectionIndex].remove(pieceIndex)
 
-	getSectionAndPieceIndex: (index) ->
+	sectionAndPieceIndex: (index) ->
 		result = [-1,-1]
 		sectionIdx=0
 		@sections.forEach (section) ->
@@ -108,13 +118,19 @@ class Track
 			result+=@sections[idx].pieces.length
 		result
 
+	index: (piece) ->
+		result = -1
+		for p, idx in @pieces()
+			if piece == p then result = idx
+		result
+
 	# get Connection transform/connected field from connection code, e.g. "0:A"
 	connection: (code) ->
 		[index, letter] = code.split ':'
-		[sectionIndex, sectionPieceIndex] = @getSectionAndPieceIndex index
+		[sectionIndex, sectionPieceIndex] = @sectionAndPieceIndex index
 		@sections[sectionIndex].pieces[sectionPieceIndex].connections[letter]
 
-	createSection: (transform = null) ->
+	_createSection: (transform = null) ->
 		section = new Section(this, transform)
 		@sections.push section
 		return section
@@ -125,7 +141,7 @@ class Track
 		[0...loose.length].forEach (idx1) =>
 			[(idx1+1)...loose.length].forEach (idx2) =>
 				trans1 = @transform(loose[idx1])
-				trans2 = @transform(loose[idx2]).compound(@gapTransform)
+				trans2 = @transform(loose[idx2]).compound(@_gapTransform)
 				if transformsMeet trans1, trans2
 					@connection(loose[idx1]).connected = loose[idx2]
 					@connection(loose[idx2]).connected = loose[idx1]
@@ -134,14 +150,14 @@ class Track
 	# transform of connection wrt to track origin
 	transform: (code) ->
 		[index, label] = code.split ':'
-		[sectionIndex, sectionPieceIndex] = @getSectionAndPieceIndex index
+		[sectionIndex, sectionPieceIndex] = @sectionAndPieceIndex index
 		@sections[sectionIndex].compoundTransform sectionPieceIndex, label
 
 	# a section is an observable / drawable unbroken run of pieces used by a track
 	# to help keep a record of loose connections and reduce the number of cached
 	# transforms
 	class Section
-		constructor: (@track, @transform = new Transform(0,0,0)) ->
+		constructor: (@track, @transform = new Transform(100,100,0)) ->
 			@pieces = []
 
 		add: (piece) ->
@@ -197,14 +213,14 @@ class Track
 		compoundTransform: (n, connection) ->
 			start = @transform
 			[0...n].forEach (pieceIndex) =>
-				start = start.compound(@pieces[pieceIndex].exitTransform()).compound(@track.gapTransform)
+				start = start.compound(@pieces[pieceIndex].exitTransform()).compound(@track._gapTransform)
 			start.compound(@pieces[n].connections[connection])
 
 		draw: (painter) ->
 			start = @transform
 			@pieces.forEach (piece) =>
 				piece.draw painter, start
-				start = start.compound(piece.exitTransform()).compound(@track.gapTransform)
+				start = start.compound(piece.exitTransform()).compound(@track._gapTransform)
 
 # Abstract class for defining a painter see woodentrack.raphael.coffee and woodentrack.d3.coffee
 class TrackPainter
@@ -251,8 +267,8 @@ class Piece
 		@section = null
 
 	setSection: (section) ->
-		if @section?
-			@section.remove this
+		# remove existing section if there is one
+		if @section? then @section.remove this
 		section.add this
 
 	exitTransform: ->
