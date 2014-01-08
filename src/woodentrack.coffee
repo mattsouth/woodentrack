@@ -7,10 +7,10 @@ class Track
 		@trackWidth = options.trackWidth ? 16
 		@trackGap = options.trackGap ? 1
 		@_gapTransform = new Transform(@trackGap, 0, 0)
-		@sections = []
+		@_sections = []
 		@_listeners = {}
 
-	# attach listener to particular type of event, e.g. "added", "removed", "moved"
+	# attach listener to particular type of event, e.g. "added", "removed", "moved" or "changed"
 	on: (type, listener) ->
 		if !@_listeners.type then @_listeners[type] = []
 		@_listeners[type].push(listener)
@@ -26,19 +26,11 @@ class Track
 		if @._listeners[event.type] instanceof Array
 			@._listeners[event.type].forEach (listener) -> listener.call(this, event)
 
-	# draw track with painter
-	draw: (painter) ->
-		@sections.forEach (section) ->
-			section.draw painter
-		if painter.showAnnotations
-			@connections().forEach (code) =>
-				painter.drawText @transform(code), code
-
 	# available connection codes
 	connections: ->
 		result = []
 		offset = 0
-		@sections.forEach (section) ->
+		@_sections.forEach (section) ->
 			section.connections().forEach (code) ->
 				[index, letter] = code.split ':'
 				result.push (parseInt(index)+offset).toString()+":"+letter
@@ -48,9 +40,17 @@ class Track
 	# all track pieces
 	pieces: ->
 		result = []
-		@sections.forEach (section) ->
+		@_sections.forEach (section) ->
 			result = result.concat section.pieces
 		result
+
+	# draw track with painter
+	draw: (painter) ->
+		@_sections.forEach (section) ->
+			section.draw painter
+		if painter.showAnnotations
+			@connections().forEach (code) =>
+				painter.drawText @_transform(code), code
 
 	# Add piece to track.
 	# Use start transform to specify position/orientation of piece.
@@ -62,8 +62,8 @@ class Track
 			if start?
 				@_createSection start
 			else
-				if @sections.length>0
-					@sections[@sections.length-1]
+				if @_sections.length>0
+					@_sections[@_sections.length-1]
 				else
 					@_createSection()
 		piece.setSection section
@@ -75,36 +75,36 @@ class Track
 		if @connections().indexOf(code)>-1
 			# check through each of the section exits before creating a new section
 			added=false
-			@sections.forEach (section) =>
+			@_sections.forEach (section) =>
 				last = section.pieces[section.pieces.length-1]
-				lastExit = (@sectionStartingIndex(section)+section.pieces.length-1)+":"+last.exit
+				lastExit = (@_sectionStartingIndex(section)+section.pieces.length-1)+":"+last.exit
 				if lastExit == code
 					added=true
 					piece.setSection section
 					@_firePieceAdded piece
 			if !added
-				section = @_createSection @transform(code).compound(@_gapTransform)
+				section = @_createSection @_transform(code).compound(@_gapTransform)
 				piece.setSection section
-				@connection(code).connected = piece.connections['A']
-				piece.connections['A'].connected = @connection(code)
+				@_connection(code).connected = piece.connections['A']
+				piece.connections['A'].connected = @_connection(code)
 				@_firePieceAdded piece
 		else
 			throw new Error(code + " is not an available connection")
 
-	_firePieceAdded: (piece) ->
-		idx = @index piece
-		transform = @transform(idx.toString() + ":A")
-		@_fire { type: 'added', target: piece, start: transform.compound(new Transform(0,0,180)) }		
-
 	# remove indexed piece from track
 	remove: (index) ->
-		[sectionIndex, pieceIndex] = @sectionAndPieceIndex index
-		@sections[sectionIndex].remove(pieceIndex)
+		[sectionIndex, pieceIndex] = @_sectionAndPieceIndex index
+		@_sections[sectionIndex].remove(pieceIndex)
 
-	sectionAndPieceIndex: (index) ->
+	_firePieceAdded: (piece) ->
+		idx = @_index piece
+		transform = @_transform(idx.toString() + ":A")
+		@_fire { type: 'added', target: piece, start: transform.compound(new Transform(0,0,180)) }		
+
+	_sectionAndPieceIndex: (index) ->
 		result = [-1,-1]
 		sectionIdx=0
-		@sections.forEach (section) ->
+		@_sections.forEach (section) ->
 			if index<section.pieces.length
 				result = [sectionIdx, index]
 			else
@@ -112,59 +112,59 @@ class Track
 				sectionIdx++
 		result
 
-	sectionStartingIndex: (section) ->
+	_sectionStartingIndex: (section) ->
 		result=0
-		[@sections.indexOf(section)...0].forEach (idx) =>
-			result+=@sections[idx].pieces.length
+		[@_sections.indexOf(section)...0].forEach (idx) =>
+			result+=@_sections[idx].pieces.length
 		result
 
-	index: (piece) ->
+	_index: (piece) ->
 		result = -1
 		for p, idx in @pieces()
 			if piece == p then result = idx
 		result
 
 	# get Connection transform/connected field from connection code, e.g. "0:A"
-	connection: (code) ->
+	_connection: (code) ->
 		[index, letter] = code.split ':'
-		[sectionIndex, sectionPieceIndex] = @sectionAndPieceIndex index
-		@sections[sectionIndex].pieces[sectionPieceIndex].connections[letter]
+		[sectionIndex, sectionPieceIndex] = @_sectionAndPieceIndex index
+		@_sections[sectionIndex].pieces[sectionPieceIndex].connections[letter]
 
 	_createSection: (transform = null) ->
 		section = new Section(this, transform)
-		@sections.push section
+		@_sections.push section
 		return section
 
 	# find and seal any closable loops
-	closeLoops: ->
+	_closeLoops: ->
 		loose = @connections()
 		[0...loose.length].forEach (idx1) =>
 			[(idx1+1)...loose.length].forEach (idx2) =>
-				trans1 = @transform(loose[idx1])
-				trans2 = @transform(loose[idx2]).compound(@_gapTransform)
+				trans1 = @_transform(loose[idx1])
+				trans2 = @_transform(loose[idx2]).compound(@_gapTransform)
 				if transformsMeet trans1, trans2
-					@connection(loose[idx1]).connected = loose[idx2]
-					@connection(loose[idx2]).connected = loose[idx1]
-					@closeLoops # recurse in case there are more to find
+					@_connection(loose[idx1]).connected = loose[idx2]
+					@_connection(loose[idx2]).connected = loose[idx1]
+					@_closeLoops # recurse in case there are more to find
 
 	# transform of connection wrt to track origin
-	transform: (code) ->
+	_transform: (code) ->
 		[index, label] = code.split ':'
-		[sectionIndex, sectionPieceIndex] = @sectionAndPieceIndex index
-		@sections[sectionIndex].compoundTransform sectionPieceIndex, label
+		[sectionIndex, sectionPieceIndex] = @_sectionAndPieceIndex index
+		@_sections[sectionIndex].compoundTransform sectionPieceIndex, label
 
 	# a section is an observable / drawable unbroken run of pieces used by a track
 	# to help keep a record of loose connections and reduce the number of cached
 	# transforms
 	class Section
-		constructor: (@track, @transform = new Transform(100,100,0)) ->
+		constructor: (@track, @transform = new Transform(0,0,0)) ->
 			@pieces = []
 
 		add: (piece) ->
 			if @pieces.length>0 and @connections().length==0
 				throw new Error("No available connections on this section")
 			num_pieces = @pieces.length # NB this is also the new index
-			section_offset = @track.sectionStartingIndex this
+			section_offset = @track._sectionStartingIndex this
 			piece.section = this
 			# connect existing exit connection to new piece's connection A
 			if @exit?
@@ -282,7 +282,7 @@ class Straight extends Piece
 	setSection: (section) ->
 		@connections.B = new Connection(@size*section.track.gridSize, 0, 0)
 		super
-		section.track.closeLoops this
+		section.track._closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawStraight start, @.size
@@ -296,7 +296,7 @@ class Bend extends Piece
 			@flip*(1-Math.cos(@angle))*section.track.gridSize,
 			@flip*@angle*180/Math.PI)
 		super
-		section.track.closeLoops this
+		section.track._closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
@@ -311,7 +311,7 @@ class Split extends Piece
 			@flip*(1-Math.cos(@angle))*section.track.gridSize,
 			@flip*@angle*180/Math.PI)
 		super
-		section.track.closeLoops this
+		section.track._closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawStraight start, @size
@@ -328,7 +328,7 @@ class Join extends Piece
 			@flip*(1-Math.cos(@angle))*section.track.gridSize,
 			@flip*@angle*3*180/Math.PI)
 		super
-		section.track.closeLoops this
+		section.track._closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawStraight start, @.size
@@ -350,7 +350,7 @@ class Merge extends Piece
 			@flip*section.track.gridSize*(1-Math.cos(@angle)-(2*Math.sin(@angle)/3)),
 			@flip*((@angle*180/Math.PI)-180))
 		super
-		section.track.closeLoops this
+		section.track._closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
@@ -374,7 +374,7 @@ class Crossover extends Piece
 			@flip*section.track.gridSize*(1-(2*Math.cos(@angle/2))+Math.cos(@angle)),
 			@flip*((@angle*180/Math.PI)-180))
 		super
-		section.track.closeLoops this
+		section.track._closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip

@@ -8,7 +8,7 @@ describe 'Track', ->
 	describe 'which is empty', ->
 		track = new Track
 		it 'should have no sections', ->
-			track.sections.should.have.length 0
+			track._sections.should.have.length 0
 		it 'should have no pieces', ->
 			track.pieces().should.have.length 0
 		it 'should have no loose ends', ->
@@ -23,7 +23,7 @@ describe 'Track', ->
 		straight = new Straight
 		track.add straight
 		it 'should have 1 section', ->
-			track.sections.should.have.length 1
+			track._sections.should.have.length 1
 		it 'should have 1 piece', ->
 			track.pieces().should.have.length 1
 		it 'should have two loose ends', ->
@@ -33,7 +33,7 @@ describe 'Track', ->
 		it 'should have one available connection at 0:B', ->
 			track.connections().should.include "0:B"
 		it 'should return index 0 when tested against the piece', ->
-			track.index(straight).should.equal 0
+			track._index(straight).should.equal 0
 
 	describe 'with a single straight piece that is removed', ->
 		track = new Track
@@ -41,7 +41,7 @@ describe 'Track', ->
 		track.remove 0
 		it 'should have 1 (empty) section', ->
 			# note this is needed so that the next test works
-			track.sections.should.have.length 1
+			track._sections.should.have.length 1
 		it 'should have no pieces', ->
 			track.pieces().should.have.length 0
 		it 'should have no loose', ->
@@ -54,7 +54,7 @@ describe 'Track', ->
 		track.add straight
 		track.add straight
 		it 'should have 1 section', ->
-			track.sections.should.have.length 1
+			track._sections.should.have.length 1
 		it 'should have 1 piece', ->
 			track.pieces().should.have.length 1
 		it 'should have two loose ends', ->
@@ -67,7 +67,7 @@ describe 'Track', ->
 	describe 'with two straights', ->
 		track = new Track
 		[1..2].forEach -> track.add new Straight
-		compound = track.transform '1:B'
+		compound = track._transform '1:B'
 		it 'should have two loose ends', ->
 			track.connections().should.have.length 2
 		it 'should have one available connection at 0:A', ->
@@ -135,7 +135,7 @@ describe 'Track', ->
 	describe 'with two bends', ->
 		track = new Track
 		[1..2].forEach -> track.add new Bend
-		compound = track.transform '1:B'
+		compound = track._transform '1:B'
 		it 'should calculate compound translateX correctly', ->
 			Math.round(compound.translateX).should.equal Math.round(track.gridSize+track.trackGap*Math.sin(Math.PI/4))
 		it 'should calculate compound translateY correctly', ->
@@ -147,7 +147,7 @@ describe 'Track', ->
 		track = new Track
 		[1..8].forEach -> track.add new Bend
 		it 'should have 1 section', ->
-			track.sections.should.have.length 1
+			track._sections.should.have.length 1
 		it 'should have 8 pieces', ->
 			track.pieces().should.have.length 8
 		it 'should have no loose ends', ->
