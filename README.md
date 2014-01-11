@@ -21,10 +21,13 @@ Potential demos
 ### TODO:
  - try litcoffee extensions for better documention
  - try http://coffeedoc.info/
+ - pan / zoom for painted tracks
  - event based painting
- 	- 'removed' event
- 	- annotations on/off
- 	- console drawing demo
+    - cursor
+    - raphael
+ - attribute change events
+ - removeAndJoin method (rename of existing remove and a new remove added that doesnt change the rest of the track)
+ - move method (move a section / part section / piece)
  - collision checking for pieces
 	- function isWithin for piece / section / track
 	- function isEnclosed / isPartly enclosed for square 

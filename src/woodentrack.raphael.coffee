@@ -43,7 +43,7 @@ class RaphaelTrackPainter extends TrackPainter
 			(start.translateY-startOffsetY).toString(), (end.translateX-endOffsetX).toString(), 
 			(end.translateY-endOffsetY).toString(), orbit, @railWidth, @railColor
 
-	drawText: (start, text) ->
+	drawAnnotation: (start, text) ->
 		el = @paper.text(start.translateX, start.translateY, text)
 
 	drawNobble: (start) ->

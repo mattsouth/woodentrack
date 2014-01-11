@@ -50,7 +50,7 @@ class Track
 			section.draw painter
 		if painter.showAnnotations
 			@connections().forEach (code) =>
-				painter.drawText @_transform(code), code
+				painter.drawAnnotation @_transform(code), code
 
 	# Add piece to track.
 	# Use start transform to specify position/orientation of piece.
@@ -95,6 +95,7 @@ class Track
 	remove: (index) ->
 		[sectionIndex, pieceIndex] = @_sectionAndPieceIndex index
 		@_sections[sectionIndex].remove(pieceIndex)
+		@_fire { type: 'removed', target: @ }	
 
 	_firePieceAdded: (piece) ->
 		idx = @_index piece

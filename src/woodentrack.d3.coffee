@@ -5,11 +5,19 @@ class D3TrackPainter extends TrackPainter
 		super track, options
 		@svg = d3.select('#'+id)
 		track.on 'added', @
+		track.on 'removed', @
 
 	call: (track, event) -> 
 		switch event.type
 			when "added"
+				@svg.selectAll(".annotation").remove()
 				event.target.draw @, event.start
+				if @.showAnnotations
+					@track.connections().forEach (code) =>
+						@drawAnnotation @track._transform(code), code
+			when "removed"
+				@_clear()
+				@track.draw(@, @id)
 
 	drawStraight: (start, size) ->
 		@drawStraightLine start, size*@track.gridSize, @track.trackWidth, @trackColor
@@ -31,8 +39,21 @@ class D3TrackPainter extends TrackPainter
 		@drawBendLine start.compound(right), end.compound(right), flip, 
 			@track.gridSize+(flip*@railGauge/2), @railWidth, @railColor
 
-	drawText: (start, text) ->
-		@svg.append("text").text(text).attr("x", start.translateX).attr("y", start.translateY)
+	drawAnnotation: (start, text) ->
+		@svg.append("text").text(text)
+			.attr("x", start.translateX)
+			.attr("y",start.translateY)
+			.attr("class", "annotation")
+			.attr("font-family", "sans-serif")
+			.attr("font-size", @railGauge)
+			.attr("text-anchor", "middle")
+
+	# not used yet
+	drawCursor: (start) ->
+		path = "M " + start.translateX + " " + (start.translateY + (@track.trackWidth/2)) +
+			" L " + start.translateX + " " + (start.translateY + (@track.trackWidth/2)) + 
+			" L " + (start.translateX+@track.trackWidth) + " " + start.translateY
+		@svg.append("path").attr("d", path)
 
 	drawNobble: (start) ->
 		@svg.append("circle").attr("r", 2).attr("stroke-width", 0).attr("fill", "white").attr("cx",start.translateX).attr("cy",start.translateY)
@@ -49,6 +70,10 @@ class D3TrackPainter extends TrackPainter
 			" L " + (start.translateX + Math.cos(start.rotateRads)*length) + 
 			" " + (start.translateY + Math.sin(start.rotateRads)*length)
 		@svg.append("path").attr("stroke-width", width).attr("stroke", color).attr("d", path)
+
+	_clear: ->
+		@svg.selectAll("path").remove()
+		@svg.selectAll("text").remove()
 
 root = exports ? window
 root.D3TrackPainter = D3TrackPainter
