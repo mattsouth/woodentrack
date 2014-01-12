@@ -1,6 +1,5 @@
 # see http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/
-chai = require 'chai'
-chai.should()
+should = require('chai').should()
 {Track, Section, Transform, Straight, Bend, Split} = require '../src/woodentrack'
 
 describe 'Track', ->
@@ -34,6 +33,8 @@ describe 'Track', ->
 			track.connections().should.include "0:B"
 		it 'should return index 0 when tested against the piece', ->
 			track._index(straight).should.equal 0
+		it 'should have cursor 0:B', ->
+			track.cursor().should.equal "0:B"
 
 	describe 'with a single straight piece that is removed', ->
 		track = new Track
@@ -46,6 +47,8 @@ describe 'Track', ->
 			track.pieces().should.have.length 0
 		it 'should have no loose', ->
 			track.connections().should.have.length 0
+		it 'should have no cursor', ->
+			should.not.exist track.cursor()
 
 	# cant use the same piece twice. piece will be removed from previous position before being added again
 	describe 'with a single piece that is added twice', ->

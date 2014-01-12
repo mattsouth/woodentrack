@@ -69,6 +69,10 @@ class Track
 		piece.setSection section
 		@_firePieceAdded piece
 
+	# connection (code) where the next piece will be added 
+	cursor: ->		
+		@connections()[@connections().length-1]
+
 	# Connect piece to available connection identified from code, e.g. "10:C".
 	# Throws Error if specified connection not available.
 	connect: (piece, code) ->
