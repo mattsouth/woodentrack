@@ -54,20 +54,16 @@ class Track
 
 	# Add piece to track.
 	# Use start transform to specify position/orientation of piece.
-	# If no start provided, the last piece's exit connection will be used.
+	# If no start provided, the cursor connection will be used.
 	# If no pieces in track, the default transform is used.
 	# TODO: check piece connections for collisions and bail if there are any
 	add: (piece, start = null) ->
-		section =
-			if start?
-				@_createSection start
-			else
-				if @_sections.length>0
-					@_sections[@_sections.length-1]
-				else
-					@_createSection()
-		piece.setSection section
-		@_firePieceAdded piece
+		if start? or @connections().length==0
+			section = @_createSection start
+			piece.setSection section
+			@_firePieceAdded piece
+		else
+			@connect piece, @cursor()
 
 	# connection (code) where the next piece will be added 
 	cursor: ->		
