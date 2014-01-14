@@ -11,10 +11,12 @@ class D3TrackPainter extends TrackPainter
 		switch event.type
 			when "added"
 				@svg.selectAll(".annotation").remove()
+				@svg.selectAll(".cursor").remove()
 				event.target.draw @, event.start
-				if @.showAnnotations
+				if @._showAnnotations
 					@track.connections().forEach (code) =>
 						@drawAnnotation @track._transform(code), code
+				if @._showCursor then @drawCursor @track._transform(@track.cursor())
 			when "removed"
 				@_clear()
 				@track.draw(@, @id)
@@ -50,10 +52,11 @@ class D3TrackPainter extends TrackPainter
 
 	# not used yet
 	drawCursor: (start) ->
-		path = "M " + start.translateX + " " + (start.translateY + (@track.trackWidth/2)) +
-			" L " + start.translateX + " " + (start.translateY + (@track.trackWidth/2)) + 
-			" L " + (start.translateX+@track.trackWidth) + " " + start.translateY
-		@svg.append("path").attr("d", path)
+		path = "M " + start.translateX + " " + start.translateY +
+			" L " + start.translateX + " " + (start.translateY - (@track.trackWidth/2)) + 
+			" L " + (start.translateX+@track.trackWidth) + " " + start.translateY +
+			" L " + start.translateX + " " + (start.translateY + (@track.trackWidth/2))
+		@svg.append("path").attr("d", path).attr("class", "cursor")
 
 	drawNobble: (start) ->
 		@svg.append("circle").attr("r", 2).attr("stroke-width", 0).attr("fill", "white").attr("cx",start.translateX).attr("cy",start.translateY)

@@ -6,9 +6,9 @@ class Track
 		@gridSize = options.gridSize ? 100
 		@trackWidth = options.trackWidth ? 16
 		@trackGap = options.trackGap ? 1
-		@_gapTransform = new Transform(@trackGap, 0, 0)
 		@_sections = []
 		@_listeners = {}
+		@_gapTransform = new Transform(@trackGap, 0, 0)
 
 	# attach listener to particular type of event, e.g. "added", "removed", "moved" or "changed"
 	on: (type, listener) ->
@@ -48,9 +48,10 @@ class Track
 	draw: (painter) ->
 		@_sections.forEach (section) ->
 			section.draw painter
-		if painter.showAnnotations
+		if painter._showAnnotations
 			@connections().forEach (code) =>
 				painter.drawAnnotation @_transform(code), code
+		if painter._showCursor then painter.drawCursor @._transform(@cursor())
 
 	# Add piece to track.
 	# Use start transform to specify position/orientation of piece.
@@ -229,9 +230,22 @@ class TrackPainter
 		@track = track
 		@trackColor = options.trackColor ? "lightgrey"
 		@railColor = options.railColor ? "white"
-		@showAnnotations = options.showAnnotations ? true
+		@_showAnnotations = options.showAnnotations ? true
+		@_showCursor = options.showCursor ? true
 		@railWidth = options.railWidth ? 2
 		@railGauge = options.railGauge ? 9
+
+	showAnnotations: (show) ->
+		if show!=@_showAnnotations
+			@_showAnnotations = show
+			@_clear()
+			@track.draw @, @id
+
+	showCursor: (show) ->
+		if show!=@_showCursor
+			@_showCursor = show
+			@_clear()
+			@track.draw @, @id
 
 # a transform is used to move/rotate coordinate axes
 class Transform
