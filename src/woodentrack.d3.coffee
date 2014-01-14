@@ -1,5 +1,5 @@
 # Track Painter that uses D3 (http://www.d3js.org) to draw track
-# requires an svg node in the document with the passed id
+# requires an svg element in the document with the passed id
 class D3TrackPainter extends TrackPainter
 	constructor: (track, id, options={}) ->
 		super track, options
@@ -13,10 +13,10 @@ class D3TrackPainter extends TrackPainter
 				@svg.selectAll(".annotation").remove()
 				@svg.selectAll(".cursor").remove()
 				event.target.draw @, event.start
+				if @._showCursor then @drawCursor @track._transform(@track.cursor())
 				if @._showAnnotations
 					@track.connections().forEach (code) =>
-						@drawAnnotation @track._transform(code), code
-				if @._showCursor then @drawCursor @track._transform(@track.cursor())
+						@drawAnnotation @track._transform(code).compound(@track._gapTransform), code
 			when "removed"
 				@_clear()
 				@track.draw(@, @id)
@@ -44,22 +44,35 @@ class D3TrackPainter extends TrackPainter
 	drawAnnotation: (start, text) ->
 		@svg.append("text").text(text)
 			.attr("x", start.translateX)
-			.attr("y",start.translateY)
+			.attr("y", start.translateY)
 			.attr("class", "annotation")
 			.attr("font-family", "sans-serif")
 			.attr("font-size", @railGauge)
+			.attr("fill", @trackColor)
+			.attr("style", "font-weight:bold;")
 			.attr("text-anchor", "middle")
+			.attr("transform", "rotate(" + (start.rotateDegs+90).toString() + " " + (start.translateX).toFixed(2) + "," + start.translateY.toFixed(2) + ")")
 
-	# not used yet
 	drawCursor: (start) ->
-		path = "M " + start.translateX + " " + start.translateY +
-			" L " + start.translateX + " " + (start.translateY - (@track.trackWidth/2)) + 
-			" L " + (start.translateX+@track.trackWidth) + " " + start.translateY +
-			" L " + start.translateX + " " + (start.translateY + (@track.trackWidth/2))
-		@svg.append("path").attr("d", path).attr("class", "cursor")
+		offset = 2
+		offset+=@railGauge-2 if @_showAnnotations
+		path = "M " + (offset + start.translateX) + " " + start.translateY +
+			" L " + (offset + start.translateX) + " " + (start.translateY - (@track.trackWidth/2) + 2) + 
+			" L " + (start.translateX+@track.trackWidth+offset-4) + " " + start.translateY +
+			" L " + (offset + start.translateX) + " " + (start.translateY + (@track.trackWidth/2) - 2)
+		@svg.append("path")
+			.attr("d", path)
+			.attr("class", "cursor")
+			.attr("fill", @trackColor)
+			.attr("transform", "rotate(" + start.rotateDegs + " " + start.translateX.toFixed(2) + "," + start.translateY.toFixed(2) + ")")
 
 	drawNobble: (start) ->
-		@svg.append("circle").attr("r", 2).attr("stroke-width", 0).attr("fill", "white").attr("cx",start.translateX).attr("cy",start.translateY)
+		@svg.append("circle")
+			.attr("r", 2)
+			.attr("stroke-width", 0)
+			.attr("fill", "white")
+			.attr("cx",start.translateX)
+			.attr("cy",start.translateY)
 
 	drawBendLine: (start, end, flip, radius, width, color) ->
 		orbit = if flip==1 then "1" else "0"

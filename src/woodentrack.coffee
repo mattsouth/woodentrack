@@ -50,7 +50,7 @@ class Track
 			section.draw painter
 		if painter._showAnnotations
 			@connections().forEach (code) =>
-				painter.drawAnnotation @_transform(code), code
+				painter.drawAnnotation @_transform(code).compound(@_gapTransform), code
 		if painter._showCursor then painter.drawCursor @._transform(@cursor())
 
 	# Add piece to track.
