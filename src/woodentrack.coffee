@@ -34,14 +34,14 @@ class Track
 			section.connections().forEach (code) ->
 				[index, letter] = code.split ':'
 				result.push (parseInt(index)+offset).toString()+":"+letter
-			offset+=section.pieces.length
+			offset+=section._pieces.length
 		result
 
 	# all track pieces
 	pieces: ->
 		result = []
 		@_sections.forEach (section) ->
-			result = result.concat section.pieces
+			result = result.concat section._pieces
 		result
 
 	# draw track with painter
@@ -77,8 +77,9 @@ class Track
 			# check through each of the section exits before creating a new section
 			added=false
 			@_sections.forEach (section) =>
-				last = section.pieces[section.pieces.length-1]
-				lastExit = (@_sectionStartingIndex(section)+section.pieces.length-1)+":"+last.exit
+				length = section._pieces.length
+				last = section._pieces[length-1]
+				lastExit = (@_sectionStartingIndex(section)+length-1)+":"+last.exit
 				if lastExit == code
 					added=true
 					piece.setSection section
@@ -107,17 +108,18 @@ class Track
 		result = [-1,-1]
 		sectionIdx=0
 		@_sections.forEach (section) ->
-			if index<section.pieces.length
+			if index<section._pieces.length
 				result = [sectionIdx, index]
 			else
-				index-=section.pieces.length
+				index-=section._pieces.length
 				sectionIdx++
 		result
 
 	_sectionStartingIndex: (section) ->
 		result=0
-		[@_sections.indexOf(section)...0].forEach (idx) =>
-			result+=@_sections[idx].pieces.length
+		for idx in [0...@_sections.indexOf(section)] 
+			do (idx) =>
+				result+=@_sections[idx]._pieces.length
 		result
 
 	_index: (piece) ->
@@ -130,7 +132,7 @@ class Track
 	_connection: (code) ->
 		[index, letter] = code.split ':'
 		[sectionIndex, sectionPieceIndex] = @_sectionAndPieceIndex index
-		@_sections[sectionIndex].pieces[sectionPieceIndex].connections[letter]
+		@_sections[sectionIndex]._pieces[sectionPieceIndex].connections[letter]
 
 	_createSection: (transform = null) ->
 		section = new Section(this, transform)
@@ -160,12 +162,12 @@ class Track
 	# transforms
 	class Section
 		constructor: (@track, @transform = new Transform(0,0,0)) ->
-			@pieces = []
+			@_pieces = []
 
 		add: (piece) ->
-			if @pieces.length>0 and @connections().length==0
+			if @_pieces.length>0 and @connections().length==0
 				throw new Error("No available connections on this section")
-			num_pieces = @pieces.length # NB this is also the new index
+			num_pieces = @_pieces.length # NB this is also the new index
 			section_offset = @track._sectionStartingIndex this
 			piece.section = this
 			# connect existing exit connection to new piece's connection A
@@ -174,40 +176,39 @@ class Track
 				piece.connections['A'].connected = @exit
 			# update section exit connection
 			@exit = piece.connections[piece.exit]
-			@pieces.push piece
+			@_pieces.push piece
 			return piece
 
 		# remove idx piece and tie up loose connections
 		remove: (idx) ->
 			if typeof(idx)!="number"
-				idx = @pieces.indexOf idx
-			num_pieces = @pieces.length
+				idx = @_pieces.indexOf idx
+			num_pieces = @_pieces.length
 			if idx>=0 and idx<num_pieces
 				# deal with section connections
-				removee = @pieces[idx]
+				removee = @_pieces[idx]
 				if num_pieces>1
 					if idx<(num_pieces-1)
-						@pieces[idx+1].connections['A'].connected=removee.connections['A'].connected
+						@_pieces[idx+1].connections['A'].connected=removee.connections['A'].connected
 					if idx>0
-						@pieces[idx-1].connections[@pieces[idx-1].exit].connected=removee.connections[removee.exit].connected
+						@_pieces[idx-1].connections[@_pieces[idx-1].exit].connected=removee.connections[removee.exit].connected
 					removee.connections['A'].connected=null
 					removee.connections[removee.exit].connected=null
 				else
 					@exit=null
 				# TODO: deal with any other track connections attached to this one
 				# set removee piece section to null
-				@pieces[idx].section=null
+				@_pieces[idx].section=null
 				# remove piece
-				@pieces.splice idx, 1
+				@_pieces.splice idx, 1
 			else
-				throw new Error("Cannot remove piece " + idx + " from section with " + @pieces.length + " pieces")
+				throw new Error("Cannot remove piece " + idx + " from section with " + @_pieces.length + " pieces")
 
 		# all available (section scope) connection codes
 		connections: ->
 			result = []
-			start = @transform
-			[0...@pieces.length].forEach (idx) =>
-				for label, connection of @pieces[idx].connections
+			[0...@_pieces.length].forEach (idx) =>
+				for label, connection of @_pieces[idx].connections
 					result.push idx.toString() + ":" + label if !connection.connected
 			result
 
@@ -215,12 +216,12 @@ class Track
 		compoundTransform: (n, connection) ->
 			start = @transform
 			[0...n].forEach (pieceIndex) =>
-				start = start.compound(@pieces[pieceIndex].exitTransform()).compound(@track._gapTransform)
-			start.compound(@pieces[n].connections[connection])
+				start = start.compound(@_pieces[pieceIndex].exitTransform()).compound(@track._gapTransform)
+			start.compound(@_pieces[n].connections[connection])
 
 		draw: (painter) ->
 			start = @transform
-			@pieces.forEach (piece) =>
+			@_pieces.forEach (piece) =>
 				piece.draw painter, start
 				start = start.compound(piece.exitTransform()).compound(@track._gapTransform)
 

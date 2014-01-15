@@ -181,3 +181,14 @@ describe 'Track', ->
 			track.connections().should.include "0:B"
 		it 'should have one available connection at 1:B', ->
 			track.connections().should.include "1:B"
+
+	describe 'adding to a second section', ->
+		track = new Track
+		track.add new Split
+		track.connect new Straight, "0:C"
+		track.add new Straight
+		track.add new Bend
+		it 'should have two sections', ->
+			track._sections.should.have.length 2
+		it 'should correctly index the start of the second section', ->
+			track._sectionStartingIndex().should.equal 1

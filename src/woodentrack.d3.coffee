@@ -19,7 +19,7 @@ class D3TrackPainter extends TrackPainter
 						@drawAnnotation @track._transform(code).compound(@track._gapTransform), code
 			when "removed"
 				@_clear()
-				@track.draw(@, @id)
+				@track.draw @
 
 	drawStraight: (start, size) ->
 		@drawStraightLine start, size*@track.gridSize, @track.trackWidth, @trackColor
@@ -57,9 +57,9 @@ class D3TrackPainter extends TrackPainter
 		offset = 2
 		offset+=@railGauge-2 if @_showAnnotations
 		path = "M " + (offset + start.translateX) + " " + start.translateY +
-			" L " + (offset + start.translateX) + " " + (start.translateY - (@track.trackWidth/2) + 2) + 
-			" L " + (start.translateX+@track.trackWidth+offset-4) + " " + start.translateY +
-			" L " + (offset + start.translateX) + " " + (start.translateY + (@track.trackWidth/2) - 2)
+			" L " + (offset + start.translateX) + " " + (start.translateY - (@track.trackWidth/2) + 3) + 
+			" L " + (start.translateX+@track.trackWidth+offset-7) + " " + start.translateY +
+			" L " + (offset + start.translateX) + " " + (start.translateY + (@track.trackWidth/2) - 3)
 		@svg.append("path")
 			.attr("d", path)
 			.attr("class", "cursor")

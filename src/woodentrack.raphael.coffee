@@ -7,6 +7,22 @@ class RaphaelTrackPainter extends TrackPainter
 		@width = options.width ? 800
 		@height = options.height ? 400
 		@paper = Raphael(document.getElementById(id), @width, @height)
+		track.on 'added', @
+		track.on 'removed', @
+
+	call: (track, event) -> 
+		switch event.type
+			when "added"
+				@svg.selectAll(".annotation").remove()
+				@svg.selectAll(".cursor").remove()
+				event.target.draw @, event.start
+				if @._showCursor then @drawCursor @track._transform(@track.cursor())
+				if @._showAnnotations
+					@track.connections().forEach (code) =>
+						@drawAnnotation @track._transform(code).compound(@track._gapTransform), code
+			when "removed"
+				@_clear()
+				@track.draw @
 
 	drawStraight: (start, size) ->
 		drawLine @paper, start.translateX, start.translateY, 
