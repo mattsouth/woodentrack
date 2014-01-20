@@ -10,21 +10,23 @@ class Track
 		@_listeners = {}
 		@_gapTransform = new Transform(@trackGap, 0, 0)
 
-	# attach listener to particular type of event, e.g. "added", "removed", "moved" or "changed"
-	on: (type, listener) ->
-		if !@_listeners.type then @_listeners[type] = []
-		@_listeners[type].push(listener)
+	# attach listener to particular types of event, e.g. "add", "remove", "move" or "change"
+	on: (types, listener) ->
+		types.split(" ").forEach (type) =>
+			if !@_listeners.type then @_listeners[type] = []
+			@_listeners[type].push(listener)
 
-	# unattach listener from particular type of event
-	off: (type, listener) ->
-		@_listeners[type].splice(idx, 1) for l, idx in @_listeners[type] when l==listener
+	# remove listener from particular types of event
+	off: (types, listener) ->
+		types.split(" ").forEach (type) =>
+			@_listeners[type].splice(idx, 1) for l, idx in @_listeners[type] when l==listener
 
 	_fire: (event) ->
 		if typeof event == "string" then event = { type: event }
 		if !event.target then event.target = @
 		if !event.type then throw new Error "Event missing 'type' property."
-		if @._listeners[event.type] instanceof Array
-			@._listeners[event.type].forEach (listener) -> listener.call(this, event)
+		if @_listeners[event.type] instanceof Array
+			@_listeners[event.type].forEach (listener) -> listener.call(this, event)
 
 	# available connection codes
 	connections: ->
@@ -97,12 +99,12 @@ class Track
 	remove: (index) ->
 		[sectionIndex, pieceIndex] = @_sectionAndPieceIndex index
 		@_sections[sectionIndex].remove(pieceIndex)
-		@_fire { type: 'removed', target: @ }	
+		@_fire { type: 'remove', target: @ }	
 
 	_firePieceAdded: (piece) ->
 		idx = @_index piece
 		transform = @_transform(idx.toString() + ":A")
-		@_fire { type: 'added', target: piece, start: transform.compound(new Transform(0,0,180)) }		
+		@_fire { type: 'add', target: piece, start: transform.compound(new Transform(0,0,180)) }		
 
 	_sectionAndPieceIndex: (index) ->
 		result = [-1,-1]

@@ -4,12 +4,11 @@ class D3TrackPainter extends TrackPainter
 	constructor: (track, id, options={}) ->
 		super track, options
 		@svg = d3.select('#'+id)
-		track.on 'added', @
-		track.on 'removed', @
+		track.on 'add remove', @
 
 	call: (track, event) -> 
 		switch event.type
-			when "added"
+			when "add"
 				@svg.selectAll(".annotation").remove()
 				@svg.selectAll(".cursor").remove()
 				event.target.draw @, event.start
@@ -17,7 +16,7 @@ class D3TrackPainter extends TrackPainter
 				if @._showAnnotations
 					@track.connections().forEach (code) =>
 						@drawAnnotation @track._transform(code).compound(@track._gapTransform), code
-			when "removed"
+			when "remove"
 				@_clear()
 				@track.draw @
 
