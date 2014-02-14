@@ -1,10 +1,10 @@
 # Track Painter that uses D3 (http://www.d3js.org) to draw track
 # requires an svg element in the document with the passed id
 class D3TrackPainter extends TrackPainter
-	constructor: (track, id, options={}) ->
+	constructor: (track, @id, options={}) ->
 		super track, options
-		@svg = d3.select('#'+id)
-		track.on 'add remove', @
+		@svg = d3.select('#'+@id)
+		track.on 'add remove clear', @
 
 	call: (track, event) -> 
 		switch event.type
@@ -19,6 +19,8 @@ class D3TrackPainter extends TrackPainter
 			when "remove"
 				@_clear()
 				@track.draw @
+			when "clear"
+				@_clear()
 
 	drawStraight: (start, size) ->
 		@drawStraightLine start, size*@track.gridSize, @track.trackWidth, @trackColor

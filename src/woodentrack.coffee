@@ -13,7 +13,7 @@ class Track
 	# attach listener to particular types of event, e.g. "add", "remove", "move" or "change"
 	on: (types, listener) ->
 		types.split(" ").forEach (type) =>
-			if !@_listeners.type then @_listeners[type] = []
+			if !@_listeners[type]? then @_listeners[type] = []
 			@_listeners[type].push(listener)
 
 	# remove listener from particular types of event
@@ -77,13 +77,13 @@ class Track
 	connect: (piece, code) ->
 		if @connections().indexOf(code)>-1
 			# check through each of the section exits before creating a new section
-			added=false
+			added = false
 			@_sections.forEach (section) =>
 				length = section._pieces.length
 				last = section._pieces[length-1]
 				lastExit = (@_sectionStartingIndex(section)+length-1)+":"+last.exit
 				if lastExit == code
-					added=true
+					added = true
 					piece.setSection section
 					@_firePieceAdded piece
 			if !added
@@ -100,6 +100,11 @@ class Track
 		[sectionIndex, pieceIndex] = @_sectionAndPieceIndex index
 		@_sections[sectionIndex].remove(pieceIndex)
 		@_fire { type: 'remove', target: @ }	
+
+	clear: ->
+		# todo: remove listeners / pieces?
+		@_sections = []
+		@_fire { type: 'clear', target: @ }
 
 	_firePieceAdded: (piece) ->
 		idx = @_index piece
