@@ -16,7 +16,14 @@
 		<svg id="track-canvas" width="800" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
 		<script type="text/javascript">
 			window.track = new Track
-			window.painter = new D3TrackPainter(window.track, 'track-canvas')
+			var vis = d3.select('#track-canvas')
+			    .attr("pointer-events", "all")
+    			.call(d3.behavior.zoom().on("zoom", redraw))
+    			.append('svg:g')
+			function redraw() {
+			    vis.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")");
+			}
+			window.painter = new D3TrackPainter(window.track, '#track-canvas g')
 		</script>
 	</body>
 </html>
