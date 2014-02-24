@@ -87,11 +87,10 @@ class Track
 					piece.setSection section
 					@_firePieceAdded piece
 			if !added
-				cachedConnection = @_connection(code)
 				section = @_createSection @_transform(code).compound(@_gapTransform)
+				@_connection(code).connected = piece.connections['A']
+				piece.connections['A'].connected = @_connection(code)
 				piece.setSection section
-				cachedConnection.connected = piece.connections['A']
-				piece.connections['A'].connected = cachedConnection
 				@_firePieceAdded piece
 		else
 			throw new Error(code + " is not an available connection")
@@ -113,10 +112,10 @@ class Track
 		@_fire { type: 'add', target: piece, start: transform.compound(new Transform(0,0,180)) }
 
 	_sectionAndPieceIndex: (index) ->
-		result = [-1,-1]
+		result = null
 		sectionIdx=0
 		@_sections.forEach (section) ->
-			if index<section._pieces.length
+			if index<section._pieces.length and !result?
 				result = [sectionIdx, index]
 			else
 				index-=section._pieces.length
