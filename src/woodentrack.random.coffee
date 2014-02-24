@@ -30,6 +30,7 @@ addRandom = (track, num, transform = new Transform(100,100,0)) ->
 		# which connection
 		connections = track.connections()
 		if connections.length==0
+			console.log piece
 			track.add piece, transform
 		else
 			connection = connections[Math.floor(Math.random()*connections.length)]

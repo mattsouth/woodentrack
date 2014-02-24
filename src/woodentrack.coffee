@@ -10,7 +10,7 @@ class Track
 		@_listeners = {}
 		@_gapTransform = new Transform(@trackGap, 0, 0)
 
-	# attach listener to "add", "remove" or "change" types of event
+	# attach listener to "add", "remove" or "clear" types of event
 	on: (types, listener) ->
 		types.split(" ").forEach (type) =>
 			if !@_listeners[type]? then @_listeners[type] = []
@@ -87,10 +87,11 @@ class Track
 					piece.setSection section
 					@_firePieceAdded piece
 			if !added
+				cachedConnection = @_connection(code)
 				section = @_createSection @_transform(code).compound(@_gapTransform)
 				piece.setSection section
-				@_connection(code).connected = piece.connections['A']
-				piece.connections['A'].connected = @_connection(code)
+				cachedConnection.connected = piece.connections['A']
+				piece.connections['A'].connected = cachedConnection
 				@_firePieceAdded piece
 		else
 			throw new Error(code + " is not an available connection")
@@ -290,7 +291,7 @@ class Piece
 		@section = null
 
 	setSection: (section) ->
-		# remove existing section if there is one
+		# remove existing section if there is already one set
 		if @section? then @section.remove this
 		section.add this
 
