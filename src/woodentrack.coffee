@@ -1,6 +1,5 @@
 # a track is an observable / drawable model of a woooden train track comprising
 # multiple pieces of different types connected together
-# see http://www.nczonline.net/blog/2010/03/09/custom-events-in-javascript/ for observable template
 class Track
 	constructor: (options={}) ->
 		@gridSize = options.gridSize ? 100
@@ -10,7 +9,10 @@ class Track
 		@_listeners = {}
 		@_gapTransform = new Transform(@trackGap, 0, 0)
 
-	# attach listener to "add", "remove" or "clear" types of event
+	# Next three methods make class observable.  For template see
+	# http://www.nczonline.net/blog/2010/03/09/custom-events-in-javascript/
+
+	# attach listener to "add", "remove", "change" or "clear" types of event
 	on: (types, listener) ->
 		types.split(" ").forEach (type) =>
 			if !@_listeners[type]? then @_listeners[type] = []
@@ -27,6 +29,13 @@ class Track
 		if !event.type then throw new Error "Event missing 'type' property."
 		if @_listeners[event.type] instanceof Array
 			@_listeners[event.type].forEach (listener) -> listener.call(this, event)
+
+	# update property and fire "change" event
+	# todo: use 'dirty' state to recalculate connection transforms when gridSize or trackGap are changed
+	set: (property, value) ->
+		if value!=@[property]
+			@[property]=value
+			@_fire { type: 'change', target: @ }
 
 	# available connection codes
 	connections: ->

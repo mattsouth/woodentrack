@@ -8,9 +8,9 @@ class D3TrackPainter extends TrackPainter
 			.append("svg:g")
 		@svg = d3.select('#' + @selector + ' g')
 		super track, options
-		track.on 'add remove clear', @
+		track.on 'add remove clear change', @
 
-	call: (track, event) -> 
+	call: (track, event) ->
 		switch event.type
 			when "add"
 				@svg.selectAll(".annotation").remove()
@@ -20,9 +20,8 @@ class D3TrackPainter extends TrackPainter
 				if @showCodes
 					@track.connections().forEach (code) =>
 						@drawCode @track._transform(code).compound(@track._gapTransform), code
-			when "remove"
-				@_clear()
-				@track.draw @
+			when "remove", "change"
+				@draw()
 			when "clear"
 				@_clear()
 
@@ -30,9 +29,9 @@ class D3TrackPainter extends TrackPainter
 		@drawStraightLine start, size*@track.gridSize, @track.trackWidth, @trackColor
 
 	drawStraightRails: (start, size) ->
-		@drawStraightLine start.compound(new Transform(0, @railGauge/2, 0)), 
+		@drawStraightLine start.compound(new Transform(0, @railGauge/2, 0)),
 			size*@track.gridSize, @railWidth, @railColor
-		@drawStraightLine start.compound(new Transform(0, -@railGauge/2, 0)), 
+		@drawStraightLine start.compound(new Transform(0, -@railGauge/2, 0)),
 			size*@track.gridSize, @railWidth, @railColor
 
 	drawBend: (start, end, flip) ->
@@ -40,10 +39,10 @@ class D3TrackPainter extends TrackPainter
 
 	drawBendRails: (start, end, flip) ->
 		left = new Transform(0, @railGauge/2, 0)
-		@drawBendLine start.compound(left), end.compound(left), flip, 
+		@drawBendLine start.compound(left), end.compound(left), flip,
 			@track.gridSize-(flip*@railGauge/2), @railWidth, @railColor
 		right = new Transform(0, -@railGauge/2, 180)
-		@drawBendLine start.compound(right), end.compound(right), flip, 
+		@drawBendLine start.compound(right), end.compound(right), flip,
 			@track.gridSize+(flip*@railGauge/2), @railWidth, @railColor
 
 	drawCode: (start, text) ->
@@ -62,7 +61,7 @@ class D3TrackPainter extends TrackPainter
 		offset = 2
 		offset+=@railGauge-2 if @showCodes
 		path = "M " + (offset + start.translateX) + " " + start.translateY +
-			" L " + (offset + start.translateX) + " " + (start.translateY - (@track.trackWidth/2) + 3) + 
+			" L " + (offset + start.translateX) + " " + (start.translateY - (@track.trackWidth/2) + 3) +
 			" L " + (start.translateX+@track.trackWidth+offset-7) + " " + start.translateY +
 			" L " + (offset + start.translateX) + " " + (start.translateY + (@track.trackWidth/2) - 3)
 		@svg.append("path")
@@ -87,8 +86,8 @@ class D3TrackPainter extends TrackPainter
 		@svg.append("path").attr("fill", "none").attr("stroke-width", width).attr("stroke", color).attr("d", path)
 
 	drawStraightLine: (start, length, width, color) ->
-		path = "M " + start.translateX + " " + start.translateY + 
-			" L " + (start.translateX + Math.cos(start.rotateRads)*length) + 
+		path = "M " + start.translateX + " " + start.translateY +
+			" L " + (start.translateX + Math.cos(start.rotateRads)*length) +
 			" " + (start.translateY + Math.sin(start.rotateRads)*length)
 		@svg.append("path").attr("stroke-width", width).attr("stroke", color).attr("d", path)
 
