@@ -247,8 +247,17 @@ class Track
 				piece.draw painter, start
 				start = start.compound(piece.exitTransform()).compound(@track._gapTransform)
 
-# Abstract class for defining a painter see woodentrack.raphael.coffee and woodentrack.d3.coffee
-# implementations must include drawLine, drawBend, drawCode, drawCursor and _clear
+# Abstract class for defining a painter see:
+# - woodentrack.raphael.coffee
+# - woodentrack.d3.coffee
+# Implementations must include the following methods:
+# - drawStraight
+# - drawStraightRails
+# - drawBend
+# - drawbendRails
+# - drawCode
+# - drawCursor
+# - _clear
 class TrackPainter
 	constructor: (track, options={}) ->
 		@track = track
