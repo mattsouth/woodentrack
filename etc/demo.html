@@ -1,7 +1,7 @@
 <html>
 	<head>
 		<title>Woodentrack demo</title>
-		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+		<script type="text/javascript" src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 		<script type="text/javascript" src="/src/woodentrack.js"></script>
 		<script type="text/javascript" src="/src/woodentrack.d3.js"></script>
 		<script type="text/javascript" src="/src/woodentrack.random.js"></script>
@@ -16,14 +16,7 @@
 		<svg id="track-canvas" width="800" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
 		<script type="text/javascript">
 			window.track = new Track
-			var vis = d3.select('#track-canvas')
-			    .attr("pointer-events", "all")
-    			.call(d3.behavior.zoom().on("zoom", redraw))
-    			.append('svg:g')
-			function redraw() {
-			    vis.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")");
-			}
-			window.painter = new D3TrackPainter(window.track, '#track-canvas g')
+			window.painter = new D3TrackPainter(window.track, 'track-canvas')
 		</script>
 	</body>
 </html>

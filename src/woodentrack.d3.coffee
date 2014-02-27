@@ -2,8 +2,12 @@
 # requires an svg element in the document with the passed id
 class D3TrackPainter extends TrackPainter
 	constructor: (track, @selector, options={}) ->
+		vis = d3.select('#'+@selector)
+			.attr("pointer-events", "all")
+			.call(d3.behavior.zoom().on("zoom", -> vis.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")))
+			.append("svg:g")
+		@svg = d3.select('#' + @selector + ' g')
 		super track, options
-		@svg = d3.select(@selector)
 		track.on 'add remove clear', @
 
 	call: (track, event) -> 
@@ -12,10 +16,10 @@ class D3TrackPainter extends TrackPainter
 				@svg.selectAll(".annotation").remove()
 				@svg.selectAll(".cursor").remove()
 				event.target.draw @, event.start
-				if @._showCursor then @drawCursor @track._transform(@track.cursor())
-				if @._showAnnotations
+				if @showCursor then @drawCursor @track._transform(@track.cursor())
+				if @showCodes
 					@track.connections().forEach (code) =>
-						@drawAnnotation @track._transform(code).compound(@track._gapTransform), code
+						@drawCode @track._transform(code).compound(@track._gapTransform), code
 			when "remove"
 				@_clear()
 				@track.draw @
@@ -42,7 +46,7 @@ class D3TrackPainter extends TrackPainter
 		@drawBendLine start.compound(right), end.compound(right), flip, 
 			@track.gridSize+(flip*@railGauge/2), @railWidth, @railColor
 
-	drawAnnotation: (start, text) ->
+	drawCode: (start, text) ->
 		@svg.append("text").text(text)
 			.attr("x", start.translateX)
 			.attr("y", start.translateY)
@@ -56,7 +60,7 @@ class D3TrackPainter extends TrackPainter
 
 	drawCursor: (start) ->
 		offset = 2
-		offset+=@railGauge-2 if @_showAnnotations
+		offset+=@railGauge-2 if @showCodes
 		path = "M " + (offset + start.translateX) + " " + start.translateY +
 			" L " + (offset + start.translateX) + " " + (start.translateY - (@track.trackWidth/2) + 3) + 
 			" L " + (start.translateX+@track.trackWidth+offset-7) + " " + start.translateY +

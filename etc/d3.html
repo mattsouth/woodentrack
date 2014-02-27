@@ -1,10 +1,10 @@
 <html>
 	<head>
 		<title>Woodentrack demo</title>
-		<script src="../lib/coffee-script.js"></script>
+		<script src="/lib/coffee-script.js"></script>
 		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-		<script type="text/coffeescript" src="../src/woodentrack.coffee"></script>
-		<script type="text/coffeescript" src="../src/woodentrack.d3.coffee"></script>
+		<script type="text/coffeescript" src="/src/woodentrack.coffee"></script>
+		<script type="text/coffeescript" src="/src/woodentrack.d3.coffee"></script>
 		<style>
 			svg {
 				border: 1px solid black;
@@ -16,7 +16,7 @@
 		<svg id="track-canvas" width="800" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
 		<script type="text/coffeescript">
 			track = new Track
-			track.add new Split, new Transform 100, 100, 0
+			track.add new Split({flip:-1}), new Transform 100, 100, 0
 			track.connect new Straight, "0:B"
 			track.add new Straight({size:1/3})
 			track.add new Bend
@@ -24,9 +24,9 @@
 			track.connect new Merge({flip:-1}), "4:B"
 			track.connect new Crossover, "5:C"
 			track.add new Bend({flip:-1})
-			track.connect new Crossover({flip:-1}), "0:C"
+			track.connect new Crossover({flip:-1}), "4:C"
 			track.connect new Split({flip:-1}),"6:C"
-			track.draw new D3TrackPainter track, 'track-canvas'
+			window.painter = new D3TrackPainter track, 'track-canvas'
 			window.track = track
 		</script>
 	</body>

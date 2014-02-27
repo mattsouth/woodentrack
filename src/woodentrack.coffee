@@ -50,10 +50,10 @@ class Track
 	draw: (painter) ->
 		@_sections.forEach (section) ->
 			section.draw painter
-		if painter._showAnnotations
+		if painter.showCodes
 			@connections().forEach (code) =>
-				painter.drawAnnotation @_transform(code).compound(@_gapTransform), code
-		if painter._showCursor then painter.drawCursor @._transform(@cursor())
+				painter.drawCode @_transform(code).compound(@_gapTransform), code
+		if painter.showCursor then painter.drawCursor @._transform(@cursor())
 
 	# Add piece to track.
 	# Use start transform to specify position/orientation of piece.
@@ -70,7 +70,13 @@ class Track
 
 	# connection (code) where the next piece will be added
 	cursor: ->
-		@connections()[@connections().length-1]
+		section = @_sections[@_sections.length-1]
+		if section?
+			piece = section._pieces[section._pieces.length-1]
+		if piece?
+			@_index(piece) + ":" + piece.exit
+		else
+			@connections()[@connections().length-1]
 
 	# Connect piece to available connection identified from code, e.g. "10:C".
 	# Throws Error if specified connection not available.
@@ -233,27 +239,31 @@ class Track
 				start = start.compound(piece.exitTransform()).compound(@track._gapTransform)
 
 # Abstract class for defining a painter see woodentrack.raphael.coffee and woodentrack.d3.coffee
+# implementations must include drawLine, drawBend, drawCode, drawCursor and _clear
 class TrackPainter
 	constructor: (track, options={}) ->
 		@track = track
 		@trackColor = options.trackColor ? "lightgrey"
 		@railColor = options.railColor ? "white"
-		@_showAnnotations = options.showAnnotations ? true
-		@_showCursor = options.showCursor ? true
+		@showCodes = options.showCodes ? true
+		@showCursor = options.showCursor ? true
 		@railWidth = options.railWidth ? 2
 		@railGauge = options.railGauge ? 9
+		@draw()
 
-	showAnnotations: (show) ->
-		if show!=@_showAnnotations
-			@_showAnnotations = show
-			@_clear()
-			@track.draw @, @id
+	draw: ->
+		@_clear()
+		@track._sections.forEach (section) =>
+			section.draw @
+		if @showCodes
+			@track.connections().forEach (code) =>
+				@drawCode @track._transform(code).compound(@track._gapTransform), code
+		if @showCursor && @track.cursor() then @drawCursor @track._transform(@track.cursor())
 
-	showCursor: (show) ->
-		if show!=@_showCursor
-			@_showCursor = show
-			@_clear()
-			@track.draw @, @id
+	set: (property, value) ->
+		if value!=@[property]
+			@[property]=value
+			@draw()
 
 # a transform is used to move/rotate coordinate axes
 class Transform

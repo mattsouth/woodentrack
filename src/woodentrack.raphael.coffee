@@ -3,27 +3,15 @@
 class RaphaelTrackPainter extends TrackPainter
 
 	constructor: (track, id, options={}) ->
-		super track, options
 		@width = options.width ? 800
 		@height = options.height ? 400
 		@paper = Raphael(document.getElementById(id), @width, @height)
+		super track, options
 		track.on 'add remove clear', @
 
 	call: (track, event) -> 
-		switch event.type
-			when "add"
-				@svg.selectAll(".annotation").remove()
-				@svg.selectAll(".cursor").remove()
-				event.target.draw @, event.start
-				if @._showCursor then @drawCursor @track._transform(@track.cursor())
-				if @._showAnnotations
-					@track.connections().forEach (code) =>
-						@drawAnnotation @track._transform(code).compound(@track._gapTransform), code
-			when "remove"
-				@_clear()
-				@track.draw @
-			when "clear"
-				@_clear()
+		# todo: work out how to be more precise
+		@draw()
 
 	drawStraight: (start, size) ->
 		drawLine @paper, start.translateX, start.translateY, 
@@ -60,8 +48,28 @@ class RaphaelTrackPainter extends TrackPainter
 			(start.translateY-startOffsetY).toString(), (end.translateX-endOffsetX).toString(), 
 			(end.translateY-endOffsetY).toString(), orbit, @railWidth, @railColor
 
-	drawAnnotation: (start, text) ->
+	drawCode: (start, text) ->
 		el = @paper.text(start.translateX, start.translateY, text)
+		el.attr {
+			'class' : 'code'
+		}
+
+	drawCursor: (start) ->
+		offset = 2
+		path = "M " + (offset + start.translateX) + " " + start.translateY +
+			" L " + (offset + start.translateX) + " " + (start.translateY - (@track.trackWidth/2) + 3) + 
+			" L " + (start.translateX+@track.trackWidth+offset-7) + " " + start.translateY +
+			" L " + (offset + start.translateX) + " " + (start.translateY + (@track.trackWidth/2) - 3)		
+		cursor = @paper.path path
+		cursor.attr {
+			'fill' : @trackColor
+			'stroke-width' : 0
+		}
+		cursor.rotate start.rotateDegs, start.translateX, start.translateY
+		cursor.toBack()
+
+	_clear: ->
+		@paper.clear()
 
 	drawNobble: (start) ->
 		el = @paper.circle(start.translateX, start.translateY, 2)
