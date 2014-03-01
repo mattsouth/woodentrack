@@ -58,16 +58,10 @@ class Track
 			result = result.concat section._pieces
 		result
 
-	# draw track with painter
-	draw: (painter) ->
-		@_sections.forEach (section) ->
-			section.draw painter
-		if painter.showCodes
-			@connections().forEach (code) =>
-				painter.drawCode @_transform(code).compound(@_gapTransform), code
-		if painter.showCursor then painter.drawCursor @._transform(@cursor())
-
-	# Add piece to track.  Use cursor or track start transform
+	# Add piece to track.
+	# Use start transform to specify position/orientation of piece.
+	# If no start provided, the cursor connection will be used.
+	# If no pieces in track, the default transform is used.
 	# TODO: check piece connections for collisions and bail if there are any
 	add: (piece, where) ->
 		if where?
@@ -255,12 +249,6 @@ class Track
 				start = start.compound(@_pieces[pieceIndex].exitTransform()).compound(@track._gapTransform)
 			start.compound(@_pieces[n].connections[connection].transform())
 
-		draw: (painter) ->
-			start = @transform()
-			@_pieces.forEach (piece) =>
-				piece.draw painter, start
-				start = start.compound(piece.exitTransform()).compound(@track._gapTransform)
-
 # Abstract class for defining a painter see:
 # - woodentrack.raphael.coffee
 # - woodentrack.d3.coffee
@@ -286,7 +274,10 @@ class TrackPainter
 	draw: ->
 		@_clear()
 		@track._sections.forEach (section) =>
-			section.draw @
+			start = section.transform
+			section._pieces.forEach (piece) =>
+				piece.draw @, start
+				start = start.compound(piece.exitTransform()).compound(@track._gapTransform)			
 		if @showCodes
 			@track.connections().forEach (code) =>
 				@drawCode @track._transform(code).compound(@track._gapTransform), code
