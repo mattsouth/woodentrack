@@ -297,12 +297,6 @@ class Transform
 	toString: ->
 		return "("+@translateX+", "+@translateY+", "+@rotateDegs+")"
 
-# an extended Transform with a pointer to another connection
-class ConnectedTransform extends Transform
-	constructor: (@translateX, @translateY, @rotateDegs) ->
-		super @translateX, @translateY, @rotateDegs
-		@connected = null
-
 # Abstract track piece
 # @connections define the transforms associated with each connection on the piece
 # They each have an alphabetic label and by convention, label 'A' is always the first to be attached
@@ -314,7 +308,7 @@ class Piece
 		@radius = options.radius ? 1
 		@exit = options.exit ? 'B'
 		@flip = options.flip ? 1
-		@connections = { 'A' : new ConnectedTransform(0, 0, -180) }
+		@connections = { 'A' : new Transform(0, 0, -180) }
 		@section = null
 
 	setSection: (section) ->
@@ -331,7 +325,7 @@ class Piece
 
 class Straight extends Piece
 	setSection: (section) ->
-		@connections.B = new ConnectedTransform(@size*section.track.gridSize, 0, 0)
+		@connections.B = new Transform(@size*section.track.gridSize, 0, 0)
 		super
 		section.track._closeLoops this
 
@@ -342,7 +336,7 @@ class Straight extends Piece
 
 class Bend extends Piece
 	setSection: (section) ->
-		@connections.B = new ConnectedTransform(
+		@connections.B = new Transform(
 			Math.sin(@angle)*section.track.gridSize,
 			@flip*(1-Math.cos(@angle))*section.track.gridSize,
 			@flip*@angle*180/Math.PI)
@@ -356,8 +350,8 @@ class Bend extends Piece
 
 class Split extends Piece
 	setSection: (section) ->
-		@connections.B = new ConnectedTransform(@size*section.track.gridSize, 0, 0)
-		@connections.C = new ConnectedTransform(
+		@connections.B = new Transform(@size*section.track.gridSize, 0, 0)
+		@connections.C = new Transform(
 			Math.sin(@angle)*section.track.gridSize,
 			@flip*(1-Math.cos(@angle))*section.track.gridSize,
 			@flip*@angle*180/Math.PI)
@@ -373,8 +367,8 @@ class Split extends Piece
 
 class Join extends Piece
 	setSection: (section) ->
-		@connections.B = new ConnectedTransform(@size*section.track.gridSize, 0, 0)
-		@connections.C = new ConnectedTransform(
+		@connections.B = new Transform(@size*section.track.gridSize, 0, 0)
+		@connections.C = new Transform(
 			((2/3)-Math.sin(@angle))*section.track.gridSize,
 			@flip*(1-Math.cos(@angle))*section.track.gridSize,
 			@flip*@angle*3*180/Math.PI)
@@ -392,11 +386,11 @@ class Join extends Piece
 
 class Merge extends Piece
 	setSection: (section) ->
-		@connections.B = new ConnectedTransform(
+		@connections.B = new Transform(
 			Math.sin(@angle)*section.track.gridSize,
 			@flip*(1-Math.cos(@angle))*section.track.gridSize,
 			@flip*@angle*180/Math.PI)
-		@connections.C = new ConnectedTransform(
+		@connections.C = new Transform(
 			section.track.gridSize*(Math.sin(@angle)-(2*Math.cos(@angle)/3)),
 			@flip*section.track.gridSize*(1-Math.cos(@angle)-(2*Math.sin(@angle)/3)),
 			@flip*((@angle*180/Math.PI)-180))
@@ -412,15 +406,15 @@ class Merge extends Piece
 
 class Crossover extends Piece
 	setSection: (section) ->
-		@connections.B = new ConnectedTransform(
+		@connections.B = new Transform(
 			Math.sin(@angle)*section.track.gridSize,
 			@flip*(1-Math.cos(@angle))*section.track.gridSize,
 			@flip*@angle*180/Math.PI)
-		@connections.C = new ConnectedTransform(
+		@connections.C = new Transform(
 			2*section.track.gridSize*Math.sin(@angle/2),
 			@flip*2*section.track.gridSize*(1-Math.cos(@angle/2)),
 			0)
-		@connections.D = new ConnectedTransform(
+		@connections.D = new Transform(
 			section.track.gridSize*(2*Math.sin(@angle/2)-Math.sin(@angle)),
 			@flip*section.track.gridSize*(1-(2*Math.cos(@angle/2))+Math.cos(@angle)),
 			@flip*((@angle*180/Math.PI)-180))
