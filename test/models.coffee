@@ -6,23 +6,19 @@ describe 'Track', ->
 
 	describe 'which is empty', ->
 		track = new Track
-		it 'should have no sections', ->
-			track._sections.should.have.length 0
-		it 'should have no pieces', ->
-			track.pieces().should.have.length 0
-		it 'should have no loose ends', ->
-			track.connections().should.have.length 0
 		it 'should have default gridSize', ->
 			track.gridSize.should.equal 100
 		it 'should have default trackGap', ->
 			track.trackGap.should.equal 1
+		it 'should have no pieces', ->
+			track.pieces().should.have.length 0
+		it 'should have no loose ends', ->
+			track.connections().should.have.length 0
 
 	describe 'with straight piece', ->
 		track = new Track
 		straight = new Straight
 		track.add straight
-		it 'should have 1 section', ->
-			track._sections.should.have.length 1
 		it 'should have 1 piece', ->
 			track.pieces().should.have.length 1
 		it 'should have two loose ends', ->
@@ -35,6 +31,8 @@ describe 'Track', ->
 			track._index(straight).should.equal 0
 		it 'should have cursor 0:B', ->
 			track.cursor().should.equal "0:B"
+		it 'should have correct connection', ->
+			track.pieces()[0].connections.B.transform().translateX.should.equal (2/3)*100
 
 	describe 'with a single straight piece that is removed', ->
 		track = new Track

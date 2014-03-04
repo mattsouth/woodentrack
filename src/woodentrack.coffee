@@ -102,7 +102,7 @@ class Track
 					piece.setSection section
 					@_firePieceAdded piece
 			if !added
-				section = @_createSection @_transform(code).compound(@_gapTransform)
+				section = @_createSection => @_transform(code).compound(@_gapTransform)
 				@_connection(code).connected = piece.connections['A']
 				piece.connections['A'].connected = @_connection(code)
 				piece.setSection section
@@ -183,8 +183,9 @@ class Track
 	# to help keep a record of loose connections and reduce the number of cached
 	# transforms
 	class Section
-		constructor: (@track, @transform = new Transform(0,0,0)) ->
+		constructor: (@track, @transform = -> new Transform(0,0,0)) ->
 			@_pieces = []
+			@exit = null
 
 		add: (piece) ->
 			if @_pieces.length>0 and @connections().length==0
@@ -229,17 +230,17 @@ class Track
 		# all available (section scope) connection codes
 		connections: ->
 			result = []
-			[0...@_pieces.length].forEach (idx) =>
-				for label, connection of @_pieces[idx].connections
+			for piece, idx in @_pieces
+				for label, connection of piece.connections
 					result.push idx.toString() + ":" + label if !connection.connected
 			result
 
 		# return transform associated with the nth piece's connection
 		compoundTransform: (n, connection) ->
-			start = @transform
+			start = @transform()
 			[0...n].forEach (pieceIndex) =>
 				start = start.compound(@_pieces[pieceIndex].exitTransform()).compound(@track._gapTransform)
-			start.compound(@_pieces[n].connections[connection])
+			start.compound(@_pieces[n].connections[connection].transform())
 
 		draw: (painter) ->
 			start = @transform
@@ -308,7 +309,9 @@ class Piece
 		@radius = options.radius ? 1
 		@exit = options.exit ? 'B'
 		@flip = options.flip ? 1
-		@connections = { 'A' : new Transform(0, 0, -180) }
+		@connections = 
+			A : 
+				transform: -> new Transform(0, 0, -180)
 		@section = null
 
 	setSection: (section) ->
@@ -317,7 +320,7 @@ class Piece
 		section.add this
 
 	exitTransform: ->
-		@connections[@exit]
+		@connections[@exit].transform()
 
 	draw: (painter, start) ->
 		conns = for label, conn of @connections
@@ -325,7 +328,9 @@ class Piece
 
 class Straight extends Piece
 	setSection: (section) ->
-		@connections.B = new Transform(@size*section.track.gridSize, 0, 0)
+		@connections.B = 
+			transform: =>
+				new Transform(@size*section.track.gridSize, 0, 0)
 		super
 		section.track._closeLoops this
 
@@ -336,10 +341,11 @@ class Straight extends Piece
 
 class Bend extends Piece
 	setSection: (section) ->
-		@connections.B = new Transform(
-			Math.sin(@angle)*section.track.gridSize,
-			@flip*(1-Math.cos(@angle))*section.track.gridSize,
-			@flip*@angle*180/Math.PI)
+		@connections.B = 
+			transform: =>
+				new Transform Math.sin(@angle)*section.track.gridSize,
+					@flip*(1-Math.cos(@angle))*section.track.gridSize,
+					@flip*@angle*180/Math.PI
 		super
 		section.track._closeLoops this
 
@@ -350,11 +356,14 @@ class Bend extends Piece
 
 class Split extends Piece
 	setSection: (section) ->
-		@connections.B = new Transform(@size*section.track.gridSize, 0, 0)
-		@connections.C = new Transform(
-			Math.sin(@angle)*section.track.gridSize,
-			@flip*(1-Math.cos(@angle))*section.track.gridSize,
-			@flip*@angle*180/Math.PI)
+		@connections.B = 
+			transform: =>
+				new Transform(@size*section.track.gridSize, 0, 0)
+		@connections.C = 
+			transform: =>
+				new Transform Math.sin(@angle)*section.track.gridSize,
+					@flip*(1-Math.cos(@angle))*section.track.gridSize,
+					@flip*@angle*180/Math.PI
 		super
 		section.track._closeLoops this
 
@@ -367,11 +376,14 @@ class Split extends Piece
 
 class Join extends Piece
 	setSection: (section) ->
-		@connections.B = new Transform(@size*section.track.gridSize, 0, 0)
-		@connections.C = new Transform(
-			((2/3)-Math.sin(@angle))*section.track.gridSize,
-			@flip*(1-Math.cos(@angle))*section.track.gridSize,
-			@flip*@angle*3*180/Math.PI)
+		@connections.B = 
+			transform: =>
+				new Transform(@size*section.track.gridSize, 0, 0)
+		@connections.C = 
+			transform: =>
+				new Transform ((2/3)-Math.sin(@angle))*section.track.gridSize,
+					@flip*(1-Math.cos(@angle))*section.track.gridSize,
+					@flip*@angle*3*180/Math.PI
 		super
 		section.track._closeLoops this
 
@@ -386,14 +398,16 @@ class Join extends Piece
 
 class Merge extends Piece
 	setSection: (section) ->
-		@connections.B = new Transform(
-			Math.sin(@angle)*section.track.gridSize,
-			@flip*(1-Math.cos(@angle))*section.track.gridSize,
-			@flip*@angle*180/Math.PI)
-		@connections.C = new Transform(
-			section.track.gridSize*(Math.sin(@angle)-(2*Math.cos(@angle)/3)),
-			@flip*section.track.gridSize*(1-Math.cos(@angle)-(2*Math.sin(@angle)/3)),
-			@flip*((@angle*180/Math.PI)-180))
+		@connections.B = 
+			transform: =>
+				new Transform Math.sin(@angle)*section.track.gridSize,
+					@flip*(1-Math.cos(@angle))*section.track.gridSize,
+					@flip*@angle*180/Math.PI
+		@connections.C =
+			transform: =>
+				new Transform section.track.gridSize*(Math.sin(@angle)-(2*Math.cos(@angle)/3)),
+					@flip*section.track.gridSize*(1-Math.cos(@angle)-(2*Math.sin(@angle)/3)),
+					@flip*((@angle*180/Math.PI)-180)
 		super
 		section.track._closeLoops this
 
@@ -405,19 +419,22 @@ class Merge extends Piece
 		super painter, start
 
 class Crossover extends Piece
-	setSection: (section) ->
-		@connections.B = new Transform(
-			Math.sin(@angle)*section.track.gridSize,
-			@flip*(1-Math.cos(@angle))*section.track.gridSize,
-			@flip*@angle*180/Math.PI)
-		@connections.C = new Transform(
-			2*section.track.gridSize*Math.sin(@angle/2),
-			@flip*2*section.track.gridSize*(1-Math.cos(@angle/2)),
-			0)
-		@connections.D = new Transform(
-			section.track.gridSize*(2*Math.sin(@angle/2)-Math.sin(@angle)),
-			@flip*section.track.gridSize*(1-(2*Math.cos(@angle/2))+Math.cos(@angle)),
-			@flip*((@angle*180/Math.PI)-180))
+	setSection: (section) =>
+		@connections.B = 
+			transform: =>
+				new Transform Math.sin(@angle)*section.track.gridSize,
+					@flip*(1-Math.cos(@angle))*section.track.gridSize,
+					@flip*@angle*180/Math.PI
+		@connections.C = 
+			transform: =>
+				new Transform 2*section.track.gridSize*Math.sin(@angle/2),
+					@flip*2*section.track.gridSize*(1-Math.cos(@angle/2)),
+					0
+		@connections.D = 
+			transform: =>
+				new Transform section.track.gridSize*(2*Math.sin(@angle/2)-Math.sin(@angle)),
+					@flip*section.track.gridSize*(1-(2*Math.cos(@angle/2))+Math.cos(@angle)),
+					@flip*((@angle*180/Math.PI)-180)
 		super
 		section.track._closeLoops this
 
