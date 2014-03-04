@@ -243,7 +243,7 @@ class Track
 			start.compound(@_pieces[n].connections[connection].transform())
 
 		draw: (painter) ->
-			start = @transform
+			start = @transform()
 			@_pieces.forEach (piece) =>
 				piece.draw painter, start
 				start = start.compound(piece.exitTransform()).compound(@track._gapTransform)
@@ -324,7 +324,7 @@ class Piece
 
 	draw: (painter, start) ->
 		conns = for label, conn of @connections
-			painter.drawNobble start.compound(conn)
+			painter.drawNobble start.compound(conn.transform())
 
 class Straight extends Piece
 	setSection: (section) ->
@@ -369,9 +369,9 @@ class Split extends Piece
 
 	draw: (painter, start) ->
 		painter.drawStraight start, @size
-		painter.drawBend start, start.compound(@connections['C']), @flip
+		painter.drawBend start, start.compound(@connections.C.transform()), @flip
 		painter.drawStraightRails start, @size
-		painter.drawBendRails start, start.compound(@connections['C']), @flip
+		painter.drawBendRails start, start.compound(@connections.C.transform()), @flip
 		super painter, start
 
 class Join extends Piece
@@ -390,10 +390,10 @@ class Join extends Piece
 	draw: (painter, start) ->
 		painter.drawStraight start, @.size
 		back = start.compound(@exitTransform()).compound(new Transform(0,0,180))
-		painter.drawBend start.compound(@connections.C), back, @flip
+		painter.drawBend start.compound(@connections.C.transform()), back, @flip
 		painter.drawStraightRails start, @.size
 		back = start.compound(@exitTransform()).compound(new Transform(0,0,180))
-		painter.drawBendRails start.compound(@connections.C), back, @flip
+		painter.drawBendRails start.compound(@connections.C.transform()), back, @flip
 		super painter, start
 
 class Merge extends Piece
@@ -413,9 +413,9 @@ class Merge extends Piece
 
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
-		painter.drawStraight start.compound(@connections.C).compound(new Transform(0,0,180)), @size
+		painter.drawStraight start.compound(@connections.C.transform()).compound(new Transform(0,0,180)), @size
 		painter.drawBendRails start, start.compound(@exitTransform()), @flip
-		painter.drawStraightRails start.compound(@connections.C).compound(new Transform(0,0,180)), @size
+		painter.drawStraightRails start.compound(@connections.C.transform()).compound(new Transform(0,0,180)), @size
 		super painter, start
 
 class Crossover extends Piece
@@ -440,11 +440,11 @@ class Crossover extends Piece
 
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
-		painter.drawBend start.compound(@connections.C),
-			start.compound(@connections.D), @flip
+		painter.drawBend start.compound(@connections.C.transform()),
+			start.compound(@connections.D.transform()), @flip
 		painter.drawBendRails start, start.compound(@exitTransform()), @flip
-		painter.drawBendRails start.compound(@connections.C).compound(new Transform(0,0,180)),
-			start.compound(@connections.D), @flip
+		painter.drawBendRails start.compound(@connections.C.transform()).compound(new Transform(0,0,180)),
+			start.compound(@connections.D.transform()), @flip
 		super painter, start
 
 transformsMeet = (t1, t2) ->
