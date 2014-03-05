@@ -8,7 +8,7 @@ constraints can be based on boundary, mix of pieces and number of allowed loose 
 2a. completely random. bounded by box. pieces can break boundary but after each iteration remove section if boundary broken.
 ###
 
-addRandom = (track, num, transform = new Transform(100,100,0)) ->
+addRandom = (track, num) ->
 	[1..num].forEach ->
 		# which new piece
 		type = Math.floor(Math.random()*6)
@@ -30,7 +30,7 @@ addRandom = (track, num, transform = new Transform(100,100,0)) ->
 		# which connection
 		connections = track.connections()
 		if connections.length==0
-			track.add piece, transform
+			track.add piece
 		else
 			connection = connections[Math.floor(Math.random()*connections.length)]
 			track.connect piece, connection

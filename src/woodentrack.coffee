@@ -1,7 +1,7 @@
 # a track is an observable / drawable model of a woooden train track comprising
 # multiple pieces of different types connected together
 class Track
-	constructor: (options={}) ->
+	constructor: (@start=new Transform(0,0,0), options={}) ->
 		@gridSize = options.gridSize ? 100
 		@trackWidth = options.trackWidth ? 16
 		@trackGap = options.trackGap ? 1
@@ -64,14 +64,12 @@ class Track
 				painter.drawCode @_transform(code).compound(@_gapTransform), code
 		if painter.showCursor then painter.drawCursor @._transform(@cursor())
 
-	# Add piece to track.
-	# Use start transform to specify position/orientation of piece.
-	# If no start provided, the cursor connection will be used.
-	# If no pieces in track, the default transform is used.
+	# Add piece to track.  Use cursor or track start transform
+	# TODO: Error if there is no cursor
 	# TODO: check piece connections for collisions and bail if there are any
-	add: (piece, start = null) ->
-		if start? or @connections().length==0
-			section = @_createSection start
+	add: (piece) ->
+		if @connections().length==0
+			section = @_createSection => @start
 			piece.setSection section
 			@_firePieceAdded piece
 		else
