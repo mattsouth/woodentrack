@@ -30,9 +30,11 @@ addRandom = (track, num) ->
 		# which connection
 		connections = track.connections()
 		if connections.length==0
+			console.log 'random adding', piece
 			track.add piece
 		else
 			connection = connections[Math.floor(Math.random()*connections.length)]
+			console.log 'random connecting', piece, connection
 			track.connect piece, connection
 
 root = exports ? window

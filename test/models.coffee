@@ -153,7 +153,8 @@ describe 'Track', ->
 			track.pieces().should.have.length 8
 		it 'should have no loose ends', ->
 			track.connections().should.have.length 0
-		# TODO: should error on adding 9th bend
+		it 'should throw error on adding an additional bend', ->
+			(-> track.add(new Bend)).should.throw()
 
 	describe 'with single split', ->
 		track = new Track

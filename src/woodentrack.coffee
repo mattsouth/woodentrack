@@ -8,6 +8,7 @@ class Track
 		@_sections = []
 		@_listeners = {}
 		@_gapTransform = new Transform(@trackGap, 0, 0)
+		@started = null # piece that uses start transform
 
 	# Next three methods make class observable.  For template see
 	# http://www.nczonline.net/blog/2010/03/09/custom-events-in-javascript/
@@ -67,15 +68,21 @@ class Track
 		if painter.showCursor then painter.drawCursor @._transform(@cursor())
 
 	# Add piece to track.  Use cursor or track start transform
-	# TODO: Error if there is no cursor
 	# TODO: check piece connections for collisions and bail if there are any
-	add: (piece) ->
-		if @connections().length==0
+	add: (piece, where) ->
+		if where?
+			section = @_createSection -> where
+			piece.setSection section
+			@_firePieceAdded piece
+		else if @connections().length==0 and !@started?
 			section = @_createSection => @start
 			piece.setSection section
 			@_firePieceAdded piece
-		else
+			@started = piece
+		else if @cursor()?
 			@connect piece, @cursor()
+		else
+			throw new Error 'unable to add piece - try specifying the where parameter in the track.add method'
 
 	# connection (code) where the next piece will be added
 	cursor: ->
@@ -83,9 +90,13 @@ class Track
 		if section?
 			piece = section._pieces[section._pieces.length-1]
 		if piece?
-			@_index(piece) + ":" + piece.exit
+			code = @_index(piece) + ":" + piece.exit
+		conns = @connections()
+		if code? and conns.indexOf(code)>-1
+			code
 		else
-			@connections()[@connections().length-1]
+			# NB will return undefined if conns is empty
+			conns.pop()
 
 	# Connect piece to available connection identified from code, e.g. "10:C".
 	# Throws Error if specified connection not available.
@@ -120,6 +131,7 @@ class Track
 		# todo: remove listeners / pieces?
 		@_sections = []
 		@_fire { type: 'clear', target: @ }
+		@started = null
 
 	_firePieceAdded: (piece) ->
 		idx = @_index piece
@@ -177,6 +189,7 @@ class Track
 	_transform: (code) ->
 		[index, label] = code.split ':'
 		[sectionIndex, sectionPieceIndex] = @_sectionAndPieceIndex index
+		#console.log "track._transform", code, sectionIndex, sectionPieceIndex, label
 		@_sections[sectionIndex].compoundTransform sectionPieceIndex, label
 
 	# a section is an observable / drawable unbroken run of pieces used by a track
@@ -309,8 +322,8 @@ class Piece
 		@radius = options.radius ? 1
 		@exit = options.exit ? 'B'
 		@flip = options.flip ? 1
-		@connections = 
-			A : 
+		@connections =
+			A :
 				transform: -> new Transform(0, 0, -180)
 		@section = null
 
@@ -328,7 +341,7 @@ class Piece
 
 class Straight extends Piece
 	setSection: (section) ->
-		@connections.B = 
+		@connections.B =
 			transform: =>
 				new Transform(@size*section.track.gridSize, 0, 0)
 		super
@@ -341,7 +354,7 @@ class Straight extends Piece
 
 class Bend extends Piece
 	setSection: (section) ->
-		@connections.B = 
+		@connections.B =
 			transform: =>
 				new Transform Math.sin(@angle)*section.track.gridSize,
 					@flip*(1-Math.cos(@angle))*section.track.gridSize,
@@ -356,10 +369,10 @@ class Bend extends Piece
 
 class Split extends Piece
 	setSection: (section) ->
-		@connections.B = 
+		@connections.B =
 			transform: =>
 				new Transform(@size*section.track.gridSize, 0, 0)
-		@connections.C = 
+		@connections.C =
 			transform: =>
 				new Transform Math.sin(@angle)*section.track.gridSize,
 					@flip*(1-Math.cos(@angle))*section.track.gridSize,
@@ -376,10 +389,10 @@ class Split extends Piece
 
 class Join extends Piece
 	setSection: (section) ->
-		@connections.B = 
+		@connections.B =
 			transform: =>
 				new Transform(@size*section.track.gridSize, 0, 0)
-		@connections.C = 
+		@connections.C =
 			transform: =>
 				new Transform ((2/3)-Math.sin(@angle))*section.track.gridSize,
 					@flip*(1-Math.cos(@angle))*section.track.gridSize,
@@ -398,7 +411,7 @@ class Join extends Piece
 
 class Merge extends Piece
 	setSection: (section) ->
-		@connections.B = 
+		@connections.B =
 			transform: =>
 				new Transform Math.sin(@angle)*section.track.gridSize,
 					@flip*(1-Math.cos(@angle))*section.track.gridSize,
@@ -420,17 +433,17 @@ class Merge extends Piece
 
 class Crossover extends Piece
 	setSection: (section) =>
-		@connections.B = 
+		@connections.B =
 			transform: =>
 				new Transform Math.sin(@angle)*section.track.gridSize,
 					@flip*(1-Math.cos(@angle))*section.track.gridSize,
 					@flip*@angle*180/Math.PI
-		@connections.C = 
+		@connections.C =
 			transform: =>
 				new Transform 2*section.track.gridSize*Math.sin(@angle/2),
 					@flip*2*section.track.gridSize*(1-Math.cos(@angle/2)),
 					0
-		@connections.D = 
+		@connections.D =
 			transform: =>
 				new Transform section.track.gridSize*(2*Math.sin(@angle/2)-Math.sin(@angle)),
 					@flip*section.track.gridSize*(1-(2*Math.cos(@angle/2))+Math.cos(@angle)),
