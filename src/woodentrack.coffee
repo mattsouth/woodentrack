@@ -31,10 +31,12 @@ class Track
 			@_listeners[event.type].forEach (listener) -> listener.call(this, event)
 
 	# update property and fire "change" event
-	# todo: use 'dirty' state to recalculate connection transforms when gridSize or trackGap are changed
 	set: (property, value) ->
 		if value!=@[property]
 			@[property]=value
+			switch property
+				when 'trackGap'
+					@_gapTransform = new Transform(value, 0, 0)
 			@_fire { type: 'change', target: @ }
 
 	# available connection codes
