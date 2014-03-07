@@ -16,7 +16,8 @@ class D3TrackPainter extends TrackPainter
 				@svg.selectAll(".annotation").remove()
 				@svg.selectAll(".cursor").remove()
 				event.target.draw @, event.start
-				if @showCursor then @drawCursor @track._transform(@track.cursor())
+				if @showCursor and @track.cursor()?
+					@drawCursor @track._transform(@track.cursor())
 				if @showCodes
 					@track.connections().forEach (code) =>
 						@drawCode @track._transform(code).compound(@track._gapTransform), code
