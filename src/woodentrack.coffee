@@ -274,7 +274,7 @@ class TrackPainter
 	draw: ->
 		@_clear()
 		@track._sections.forEach (section) =>
-			start = section.transform
+			start = section.transform()
 			section._pieces.forEach (piece) =>
 				piece.draw @, start
 				start = start.compound(piece.exitTransform()).compound(@track._gapTransform)			

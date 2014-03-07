@@ -10,7 +10,7 @@
 		<h1>Demotastic</h1>
 		<div id="track-canvas"/>
 		<script type="text/coffeescript">
-			track = new Track new Transform 100, 100, 0
+			track = new Track new Transform(100, 100, 0)
 			track.add new Split({flip:-1})
 			track.connect new Straight, "0:B"
 			track.add new Straight({size:1/3})
