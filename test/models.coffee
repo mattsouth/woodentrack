@@ -1,6 +1,6 @@
 # see http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/
 should = require('chai').should()
-{Track, Section, Transform, Straight, Bend, Split, Crossover} = require '../src/woodentrack'
+{Track, Section, Transform, Straight, Bend, Split, Crossover, Merge} = require '../src/woodentrack'
 
 describe 'Track', ->
 
@@ -200,3 +200,12 @@ describe 'Track', ->
 		track.connect new Bend({flip:-1}), "1:D"
 		it 'should have three sections', ->
 			track._sections.should.have.length 3
+
+	describe 'should handle pieces with changing indexes', ->
+		track = new Track
+		track.add new Straight
+		track.connect new Crossover, "0:A"
+		track.connect new Bend, "1:D"
+		track.connect new Bend, "0:B"
+		it 'should have three sections', ->
+			track.pieces().should.have.length 4
