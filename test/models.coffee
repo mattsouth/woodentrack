@@ -207,5 +207,5 @@ describe 'Track', ->
 		track.connect new Crossover, "0:A"
 		track.connect new Bend, "1:D"
 		track.connect new Bend, "0:B"
-		it 'should have three sections', ->
+		it 'should have four pieces', ->
 			track.pieces().should.have.length 4

@@ -159,7 +159,7 @@ class Track
 	# get Connection transform/connected field from connection code, e.g. "0:A"
 	_connection: (code) ->
 		[index, letter] = code.split ':'
-		[sectionIndex, sectionPieceIndex] = @_sectionAndPieceIndex index
+		[sectionIndex, sectionPieceIndex] = @_sectionAndPieceIndex parseInt(index)
 		@_sections[sectionIndex]._pieces[sectionPieceIndex].connections[letter]
 
 	_createSection: (transform = null) ->
@@ -175,8 +175,8 @@ class Track
 				trans1 = @_transform(loose[idx1])
 				trans2 = @_transform(loose[idx2]).compound(@_gapTransform)
 				if transformsMeet trans1, trans2
-					@_connection(loose[idx1]).connected = loose[idx2]
-					@_connection(loose[idx2]).connected = loose[idx1]
+					@_connection(loose[idx1]).connected = @_connection(loose[idx2])
+					@_connection(loose[idx2]).connected = @_connection(loose[idx1])
 					@_closeLoops # recurse in case there are more to find
 
 	# transform of connection wrt to track origin
