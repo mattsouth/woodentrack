@@ -200,7 +200,7 @@ describe 'Track', ->
 		track.connect new Bend({flip:-1}), "1:D"
 		it 'should have three sections', ->
 			track._sections.should.have.length 3
-
+	###
 	describe 'should handle pieces with changing indexes', ->
 		track = new Track
 		track.add new Straight
@@ -209,3 +209,14 @@ describe 'Track', ->
 		track.connect new Bend, "0:B"
 		it 'should have four pieces', ->
 			track.pieces().should.have.length 4
+	###
+	describe 'should dynamically locate connections', ->
+		track = new Track new Transform(0,0,0), {trackGap: 0}
+		track.add new Straight {size: 1}
+		track.add new Split
+		track.connect new Bend, "1:C"
+		it 'initial state check', ->
+			track._transform("2:B").should.equal new Transform(200,100,90)
+		track.piece(0).set 'size', 0.5
+		it 'updated state check', ->
+			track._transform("2:B").should.equal new Transform(150,100,90)
