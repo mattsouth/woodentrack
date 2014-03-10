@@ -212,11 +212,12 @@ describe 'Track', ->
 	###
 	describe 'should dynamically locate connections', ->
 		track = new Track new Transform(0,0,0), {trackGap: 0}
-		track.add new Straight {size: 1}
+		s = new Straight {size: 1}
+		track.add s
 		track.add new Split
 		track.connect new Bend, "1:C"
 		it 'initial state check', ->
 			track._transform("2:B").should.equal new Transform(200,100,90)
-		track.piece(0).set 'size', 0.5
+		s.set 'size', 0.5
 		it 'updated state check', ->
 			track._transform("2:B").should.equal new Transform(150,100,90)

@@ -277,7 +277,7 @@ class TrackPainter
 			start = section.transform()
 			section._pieces.forEach (piece) =>
 				piece.draw @, start
-				start = start.compound(piece.exitTransform()).compound(@track._gapTransform)			
+				start = start.compound(piece.exitTransform()).compound(@track._gapTransform)
 		if @showCodes
 			@track.connections().forEach (code) =>
 				@drawCode @track._transform(code).compound(@track._gapTransform), code
@@ -329,6 +329,11 @@ class Piece
 	draw: (painter, start) ->
 		conns = for label, conn of @connections
 			painter.drawNobble start.compound(conn.transform())
+
+	set: (property, value) ->
+		if value!=@[property]
+			@[property]=value
+			@section.track._fire { type: 'change', target: @ }
 
 class Straight extends Piece
 	setSection: (section) ->
