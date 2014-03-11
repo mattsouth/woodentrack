@@ -107,7 +107,9 @@ class Track
 					piece.setSection section
 					@_firePieceAdded piece
 			if !added
-				section = @_createSection => @_transform(code).compound(@_gapTransform)
+				[index, label] = code.split ':'
+				[sectionIndex, sectionPieceIndex] = @_sectionAndPieceIndex index
+				section = @_createSection => @_sections[sectionIndex].compoundTransform(sectionPieceIndex,label).compound(@_gapTransform)
 				@_connection(code).connected = piece.connections['A']
 				piece.connections['A'].connected = @_connection(code)
 				piece.setSection section
@@ -333,7 +335,7 @@ class Piece
 	set: (property, value) ->
 		if value!=@[property]
 			@[property]=value
-			@section.track._fire { type: 'change', target: @ }
+			@section?.track?._fire { type: 'change', target: @ }
 
 class Straight extends Piece
 	setSection: (section) ->
