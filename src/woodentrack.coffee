@@ -129,6 +129,13 @@ class Track
 		@_fire { type: 'clear', target: @ }
 		@started = null
 
+	# check for overlapping bounding boxes, and if found, focus in on more detail
+	collisions: ->
+		[]
+
+	hasCollision: ->
+		@collisions.length>0
+
 	_firePieceAdded: (piece) ->
 		idx = @_index piece
 		transform = @_transform(idx.toString() + ":A")
@@ -336,6 +343,11 @@ class Piece
 		if value!=@[property]
 			@[property]=value
 			@section?.track?._fire { type: 'change', target: @ }
+
+	collisions: -> []
+
+	hasCollision: ->
+		@collisions.length > 0
 
 class Straight extends Piece
 	setSection: (section) ->

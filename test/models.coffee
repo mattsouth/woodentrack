@@ -225,3 +225,25 @@ describe 'Track', ->
 			Math.round(track._transform("2:B").translateX).should.equal 150
 			Math.round(track._transform("2:B").translateY).should.equal 100
 			Math.round(track._transform("2:B").rotateDegs).should.equal 90
+
+	describe 'should provide collision detection', ->
+		track = new Track
+		track.add new Crossover
+		track.add new Bend flip: -1
+		bend1 = new Bend flip: -1
+		track.add bend1
+		track.connect new Bend, "0:C"
+		bend2 = new Bend
+		track.add bend2
+		it 'for a track', ->
+			track.hasCollision().should.equal true
+			track.collisions().should.have.length 1
+			track.collisions()[0].should.include 2
+			track.collisions()[0].should.include 4
+		it 'for a piece', ->
+			bend1.hasCollision().should.equal true
+			bend2.hasCollision().should.equal true
+			bend1.collisions().should.have.lenght 1
+			bend1.collisions().should.include 4
+			bend2.collisions().should.have.lenght 1
+			bend2.collisions().should.include 2
