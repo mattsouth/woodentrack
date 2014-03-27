@@ -243,7 +243,4 @@ describe 'Track', ->
 		it 'for a piece', ->
 			bend1.hasCollision().should.equal true
 			bend2.hasCollision().should.equal true
-			bend1.collisions().should.have.lenght 1
-			bend1.collisions().should.include 4
-			bend2.collisions().should.have.lenght 1
-			bend2.collisions().should.include 2
+		console.log track.pieces()[2]._bbox, track.pieces()[3]._bbox

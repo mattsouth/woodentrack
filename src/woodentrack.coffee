@@ -129,12 +129,27 @@ class Track
 		@_fire { type: 'clear', target: @ }
 		@started = null
 
-	# check for overlapping bounding boxes, and if found, focus in on more detail
+	# Each collision is represented by an array of piece indexes that collide.
+	# very coarse algorithm currently used
+	# todo: look for three, four etc way collisions
 	collisions: ->
-		[]
+		pieces = []
+		@._sections.forEach (section) =>
+			start = section.transform()
+			section._pieces.forEach (piece) =>
+				piece._setBBox start
+				console.log piece._bbox
+				start = start.compound(piece.exitTransform()).compound(@._gapTransform)
+				pieces.push piece
+		result = []
+		for source, idx in pieces
+			for target, idx2 in pieces[idx..]
+				if source._bbox.overlaps target._bbox
+					result.push [idx, idx2+idx]
+		result
 
 	hasCollision: ->
-		@collisions.length>0
+		@collisions().length>0
 
 	_firePieceAdded: (piece) ->
 		idx = @_index piece
@@ -311,6 +326,18 @@ class Transform
 	toString: ->
 		return "("+@translateX+", "+@translateY+", "+@rotateDegs+")"
 
+
+# Bounding box
+class BBox
+	addTransform: (t) ->
+		@x1 = t.translateX if !@x1? or t.translateX<@x1
+		@x2 = t.translateX if !@x2? or t.translateX>@x2
+		@y1 = t.translateY if !@y1? or t.translateY<@y1
+		@y2 = t.translateX if !@y2? or t.translateY>@y2
+
+	overlaps: (bbox) ->
+		(@x1<bbox.x1 and @x2>bbox.x1 and @y1<bbox.y1 and @y2>bbox.y1) or (@x1<bbox.x2 and @x2>bbox.x2 and @y1<bbox.y2 and @y2>bbox.y2) 
+
 # Abstract track piece
 # @connections define the transforms associated with each connection on the piece
 # They each have an alphabetic label and by convention, label 'A' is always the first to be attached
@@ -326,6 +353,7 @@ class Piece
 			A :
 				transform: -> new Transform(0, 0, -180)
 		@section = null
+		@_bbox = null
 
 	setSection: (section) ->
 		# remove existing section if there is already one set
@@ -336,7 +364,7 @@ class Piece
 		@connections[@exit].transform()
 
 	draw: (painter, start) ->
-		conns = for label, conn of @connections
+		for label, conn of @connections
 			painter.drawNobble start.compound(conn.transform())
 
 	set: (property, value) ->
@@ -344,10 +372,15 @@ class Piece
 			@[property]=value
 			@section?.track?._fire { type: 'change', target: @ }
 
-	collisions: -> []
-
 	hasCollision: ->
-		@collisions.length > 0
+		idx = @section.track._index(@)
+		@section.track.collisions().some (coll) ->
+			coll.indexOf(idx)>-1
+
+	_setBBox: (start) ->
+		@_bbox = new BBox
+		for label, conn of @connections
+			@_bbox.addTransform start.compound(conn.transform())
 
 class Straight extends Piece
 	setSection: (section) ->
