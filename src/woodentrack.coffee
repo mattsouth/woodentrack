@@ -138,18 +138,28 @@ class Track
 			start = section.transform()
 			section._pieces.forEach (piece) =>
 				piece._setBBox start
-				console.log piece._bbox
+				#console.log piece._bbox
 				start = start.compound(piece.exitTransform()).compound(@._gapTransform)
 				pieces.push piece
+		console.log pieces
 		result = []
 		for source, idx in pieces
-			for target, idx2 in pieces[idx..]
-				if source._bbox.overlaps target._bbox
-					result.push [idx, idx2+idx]
+			for target, idx2 in pieces[idx+1..]
+				if source._bbox.overlaps(target._bbox) and !@connected(source, target)
+					console.log source._bbox, target._bbox
+					result.push [idx, idx2+idx+1]
+				console.log idx, source, idx2, target, result
 		result
 
 	hasCollision: ->
 		@collisions().length>0
+
+	# returns true if piece a is connected to piece b
+	connected: (a, b) ->
+		for label, connection of a.connections
+			if connection.connected==b
+				return true
+		return false
 
 	_firePieceAdded: (piece) ->
 		idx = @_index piece
@@ -179,6 +189,10 @@ class Track
 		for p, idx in @pieces()
 			if piece == p then result = idx
 		result
+
+	_piece: (index) ->
+		[sectionidx, pieceidx] = _sectionAndPieceIndex: (index)
+		@_sections[sectionidx]._pieces[pieceidx]
 
 	# get Connection transform/connected field from connection code, e.g. "0:A"
 	_connection: (code) ->
@@ -226,8 +240,8 @@ class Track
 			piece.section = this
 			# connect existing exit connection to new piece's connection A
 			if @exit?
-				@exit.connected = piece.connections['A']
-				piece.connections['A'].connected = @exit
+				@exit.connected = piece
+				piece.connections['A'].connected = @
 			# update section exit connection
 			@exit = piece.connections[piece.exit]
 			@_pieces.push piece

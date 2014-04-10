@@ -225,14 +225,14 @@ describe 'Track', ->
 			Math.round(track._transform("2:B").translateX).should.equal 150
 			Math.round(track._transform("2:B").translateY).should.equal 100
 			Math.round(track._transform("2:B").rotateDegs).should.equal 90
-
+	
 	describe 'should provide collision detection', ->
 		track = new Track
 		track.add new Crossover
 		track.add new Bend flip: -1
 		bend1 = new Bend flip: -1
 		track.add bend1
-		track.connect new Bend, "0:C"
+		track.connect new Straight, "0:C"
 		bend2 = new Bend
 		track.add bend2
 		it 'for a track', ->
@@ -243,4 +243,4 @@ describe 'Track', ->
 		it 'for a piece', ->
 			bend1.hasCollision().should.equal true
 			bend2.hasCollision().should.equal true
-		console.log track.pieces()[2]._bbox, track.pieces()[3]._bbox
+	
