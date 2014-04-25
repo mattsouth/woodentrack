@@ -138,17 +138,13 @@ class Track
 			start = section.transform()
 			section._pieces.forEach (piece) =>
 				piece._setBBox start
-				#console.log piece._bbox
 				start = start.compound(piece.exitTransform()).compound(@._gapTransform)
 				pieces.push piece
-		console.log pieces
 		result = []
 		for source, idx in pieces
 			for target, idx2 in pieces[idx+1..]
 				if source._bbox.overlaps(target._bbox) and !@connected(source, target)
-					console.log source._bbox, target._bbox
 					result.push [idx, idx2+idx+1]
-				console.log idx, source, idx2, target, result
 		result
 
 	hasCollision: ->
@@ -347,10 +343,13 @@ class BBox
 		@x1 = t.translateX if !@x1? or t.translateX<@x1
 		@x2 = t.translateX if !@x2? or t.translateX>@x2
 		@y1 = t.translateY if !@y1? or t.translateY<@y1
-		@y2 = t.translateX if !@y2? or t.translateY>@y2
+		@y2 = t.translateY if !@y2? or t.translateY>@y2
 
 	overlaps: (bbox) ->
-		(@x1<bbox.x1 and @x2>bbox.x1 and @y1<bbox.y1 and @y2>bbox.y1) or (@x1<bbox.x2 and @x2>bbox.x2 and @y1<bbox.y2 and @y2>bbox.y2) 
+		(bbox.x1>@x1 and bbox.x1<@x2 and bbox.y1>@y1 and bbox.y1<@y2) or 
+		(bbox.x2>@x1 and bbox.x2<@x2 and bbox.y2>@y1 and bbox.y2<@y2) or
+		(bbox.x1>@x1 and bbox.x1<@x2 and bbox.y2>@y1 and bbox.y2<@y2) or 
+		(bbox.x2>@x1 and bbox.x2<@x2 and bbox.y1>@y1 and bbox.y1<@y2)
 
 # Abstract track piece
 # @connections define the transforms associated with each connection on the piece

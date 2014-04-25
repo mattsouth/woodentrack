@@ -92,6 +92,14 @@ class D3TrackPainter extends TrackPainter
 			" " + (start.translateY + Math.sin(start.rotateRads)*length)
 		@svg.append("path").attr("stroke-width", width).attr("stroke", color).attr("d", path)
 
+	drawRectangle: (x, y, width, height) ->
+		@svg.append("rect").attr("x", x).attr("y", y)
+			.attr("width", width)
+			.attr("height", height)
+			.attr("fill", "none")
+			.attr("stroke", "black")
+			.attr("stroke-width", 1)
+
 	_clear: ->
 		@svg.selectAll("path").remove()
 		@svg.selectAll("text").remove()
