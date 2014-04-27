@@ -226,21 +226,39 @@ describe 'Track', ->
 			Math.round(track._transform("2:B").translateY).should.equal 100
 			Math.round(track._transform("2:B").rotateDegs).should.equal 90
 	
-	describe 'should provide collision detection', ->
+	describe 'collision detection', ->
 		track = new Track
-		track.add new Crossover
+		crossover = new Crossover
+		track.add crossover
 		track.add new Bend flip: -1
 		bend1 = new Bend flip: -1
 		track.add bend1
 		track.connect new Straight, "0:C"
 		bend2 = new Bend
 		track.add bend2
-		it 'for a track', ->
+		it 'should be available for a track', ->
 			track.hasCollision().should.equal true
 			track.collisions().should.have.length 1
 			track.collisions()[0].should.include 2
 			track.collisions()[0].should.include 4
-		it 'for a piece', ->
+		it 'should be a available for a piece', ->
+			crossover.hasCollision().should.equal false
 			bend1.hasCollision().should.equal true
 			bend2.hasCollision().should.equal true
+	
+	describe 'cloning', ->
+		track = new Track new Transform(0,0,0), {trackGap: 0}
+		track.add new Straight
+		clone = track.clone()
+		it 'should yield a mutable track', ->
+			clone.add new Straight
+			clone.pieces().should.have.length 2
+			Math.round(clone._transform("1:B").translateX).should.equal 133
+		it 'should yield an independent track', ->
+			track.pieces().should.have.length 1
+			track.pieces()[0].set 'size', 0.5
+			Math.round(track._transform("0:B").translateX).should.equal 50
+			Math.round(clone._transform("1:B").translateX).should.equal 133
+	
+
 	

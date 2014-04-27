@@ -40,6 +40,11 @@ class Track
 					@_gapTransform = new Transform(value, 0, 0)
 			@_fire { type: 'change', target: @ }
 
+	clone: ->
+		result = new Track @start, @
+		result._sections.push section.clone(result) for section in @_sections
+		result
+
 	# available connection codes
 	connections: ->
 		result = []
@@ -228,6 +233,11 @@ class Track
 			@_pieces = []
 			@exit = null
 
+		clone: (newtrack) ->
+			result = new Section(newtrack, @transform)
+			result._pieces.push piece.clone(result) for piece in @_pieces
+			result
+
 		add: (piece) ->
 			if @_pieces.length>0 and @connections().length==0
 				throw new Error("No available connections on this section")
@@ -367,6 +377,13 @@ class Piece
 				transform: -> new Transform(0, 0, -180)
 		@section = null
 		@_bbox = null
+
+	clone: (newsection) ->
+		result = new Piece(@)
+		result.section = newsection
+		# todo: deep cloning foo needed here
+		result.connections = @connections
+		result
 
 	setSection: (section) ->
 		# remove existing section if there is already one set
