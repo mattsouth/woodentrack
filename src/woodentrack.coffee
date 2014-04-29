@@ -383,6 +383,7 @@ class Piece
 		# remove existing section if there is already one set
 		if @section? then @section.remove this
 		section.add this
+		section.track._closeLoops this
 
 	exitTransform: ->
 		@connections[@exit].transform()
@@ -412,7 +413,6 @@ class Straight extends Piece
 			transform: =>
 				new Transform(@size*section.track.gridSize, 0, 0)
 		super
-		section.track._closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawStraight start, @.size
@@ -432,7 +432,6 @@ class Bend extends Piece
 					@flip*(1-Math.cos(@angle))*section.track.gridSize,
 					@flip*@angle*180/Math.PI
 		super
-		section.track._closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
@@ -455,7 +454,6 @@ class Split extends Piece
 					@flip*(1-Math.cos(@angle))*section.track.gridSize,
 					@flip*@angle*180/Math.PI
 		super
-		section.track._closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawStraight start, @size
@@ -480,7 +478,6 @@ class Join extends Piece
 					@flip*(1-Math.cos(@angle))*section.track.gridSize,
 					@flip*@angle*3*180/Math.PI
 		super
-		section.track._closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawStraight start, @.size
@@ -509,7 +506,6 @@ class Merge extends Piece
 					@flip*section.track.gridSize*(1-Math.cos(@angle)-(2*Math.sin(@angle)/3)),
 					@flip*((@angle*180/Math.PI)-180)
 		super
-		section.track._closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
@@ -541,7 +537,6 @@ class Crossover extends Piece
 					@flip*section.track.gridSize*(1-(2*Math.cos(@angle/2))+Math.cos(@angle)),
 					@flip*((@angle*180/Math.PI)-180)
 		super
-		section.track._closeLoops this
 
 	draw: (painter, start) ->
 		painter.drawBend start, start.compound(@exitTransform()), @flip
