@@ -180,9 +180,10 @@ class Track
 
 	_sectionStartingIndex: (section) ->
 		result=0
-		for idx in [0...@_sections.indexOf(section)]
-			do (idx) =>
-				result+=@_sections[idx]._pieces.length
+		if @_sections.length>0
+			for idx in [0...@_sections.indexOf(section)]
+				do (idx) =>
+					result+=@_sections[idx]._pieces.length
 		result
 
 	_index: (piece) ->
@@ -235,7 +236,7 @@ class Track
 
 		clone: (newtrack) ->
 			result = new Section(newtrack, @transform)
-			result._pieces.push piece.clone(result) for piece in @_pieces
+			piece.clone(result) for piece in @_pieces
 			result
 
 		add: (piece) ->
@@ -378,13 +379,6 @@ class Piece
 		@section = null
 		@_bbox = null
 
-	clone: (newsection) ->
-		result = new Piece(@)
-		result.section = newsection
-		# todo: deep cloning foo needed here
-		result.connections = @connections
-		result
-
 	setSection: (section) ->
 		# remove existing section if there is already one set
 		if @section? then @section.remove this
@@ -425,6 +419,11 @@ class Straight extends Piece
 		painter.drawStraightRails start, @.size
 		super painter, start
 
+	clone: (newsection) ->
+		result = new Straight(@)
+		result.setSection newsection
+		result
+
 class Bend extends Piece
 	setSection: (section) ->
 		@connections.B =
@@ -439,6 +438,11 @@ class Bend extends Piece
 		painter.drawBend start, start.compound(@exitTransform()), @flip
 		painter.drawBendRails start, start.compound(@exitTransform()), @flip
 		super painter, start
+
+	clone: (newsection) ->
+		result = new Bend(@)
+		result.setSection newsection
+		result
 
 class Split extends Piece
 	setSection: (section) ->
@@ -459,6 +463,11 @@ class Split extends Piece
 		painter.drawStraightRails start, @size
 		painter.drawBendRails start, start.compound(@connections.C.transform()), @flip
 		super painter, start
+
+	clone: (newsection) ->
+		result = new Split(@)
+		result.setSection newsection
+		result
 
 class Join extends Piece
 	setSection: (section) ->
@@ -482,6 +491,11 @@ class Join extends Piece
 		painter.drawBendRails start.compound(@connections.C.transform()), back, @flip
 		super painter, start
 
+	clone: (newsection) ->
+		result = new Join(@)
+		result.setSection newsection
+		result
+
 class Merge extends Piece
 	setSection: (section) ->
 		@connections.B =
@@ -503,6 +517,11 @@ class Merge extends Piece
 		painter.drawBendRails start, start.compound(@exitTransform()), @flip
 		painter.drawStraightRails start.compound(@connections.C.transform()).compound(new Transform(0,0,180)), @size
 		super painter, start
+
+	clone: (newsection) ->
+		result = new Merge(@)
+		result.setSection newsection
+		result
 
 class Crossover extends Piece
 	setSection: (section) =>
@@ -532,6 +551,11 @@ class Crossover extends Piece
 		painter.drawBendRails start.compound(@connections.C.transform()).compound(new Transform(0,0,180)),
 			start.compound(@connections.D.transform()), @flip
 		super painter, start
+
+	clone: (newsection) ->
+		result = new Crossover(@)
+		result.setSection newsection
+		result
 
 transformsMeet = (t1, t2) ->
 	(Math.round(t1.translateX) == Math.round(t2.translateX)) and
