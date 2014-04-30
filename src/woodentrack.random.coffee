@@ -9,6 +9,20 @@ constraints can be based on boundary, mix of pieces and number of allowed loose 
 ###
 
 addRandom = (track, num) ->
+
+	# find connection that doesnt create collision
+	getFreeConnection = (piece, connections) ->
+		if connections.length==0
+			null
+		else
+			idx = Math.floor(Math.random()*connections.length)
+			clone = track.clone()
+			clone.connect piece, connections[idx]
+			if !clone.hasCollision()
+				connections[idx]
+			else 
+				getFreeConnection piece, connections.splice(idx+1)
+
 	[1..num].forEach ->
 		# which new piece
 		type = Math.floor(Math.random()*6)
@@ -29,13 +43,12 @@ addRandom = (track, num) ->
 				piece = new Crossover { flip : flip }
 		# which connection
 		connections = track.connections()
-		if connections.length==0
-			console.log 'random adding', piece
+		if track.pieces().length==0
 			track.add piece
 		else
-			connection = connections[Math.floor(Math.random()*connections.length)]
-			console.log 'random connecting', piece, connection
-			track.connect piece, connection
+			connection = getFreeConnection piece, connections
+			if connection?
+				track.connect piece, connection
 
 root = exports ? window
 root.addRandom = addRandom

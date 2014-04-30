@@ -245,7 +245,14 @@ describe 'Track', ->
 			crossover.hasCollision().should.equal false
 			bend1.hasCollision().should.equal true
 			bend2.hasCollision().should.equal true
-	
+		it 'should be available for a cloned track', ->
+			clone = track.clone()
+			clone.hasCollision().should.equal true
+			clone.collisions().should.have.length 1
+			clone.collisions()[0].should.include 2
+			clone.collisions()[0].should.include 4
+
+
 	describe 'cloning', ->
 		track = new Track new Transform(0,0,0), {trackGap: 0}
 		track.add new Straight
