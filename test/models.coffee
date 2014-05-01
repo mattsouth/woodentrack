@@ -225,6 +225,20 @@ describe 'Track', ->
 			Math.round(track._transform("2:B").translateX).should.equal 150
 			Math.round(track._transform("2:B").translateY).should.equal 100
 			Math.round(track._transform("2:B").rotateDegs).should.equal 90
+
+	describe 'cloning', ->
+		track = new Track new Transform(0,0,0), {trackGap: 0}
+		track.add new Straight
+		clone = track.clone()
+		it 'should yield a mutable track', ->
+			clone.add new Straight
+			clone.pieces().should.have.length 2
+			Math.round(clone._transform("1:B").translateX).should.equal 133
+		it 'should yield an independent track', ->
+			track.pieces().should.have.length 1
+			track.pieces()[0].set 'size', 0.5
+			Math.round(track._transform("0:B").translateX).should.equal 50
+			Math.round(clone._transform("1:B").translateX).should.equal 133
 	
 	describe 'collision detection', ->
 		track = new Track
@@ -252,20 +266,23 @@ describe 'Track', ->
 			clone.collisions()[0].should.include 2
 			clone.collisions()[0].should.include 4
 
-
-	describe 'cloning', ->
-		track = new Track new Transform(0,0,0), {trackGap: 0}
+	describe 'collision detection - crossed liness', ->
+		track = new Track
+		straight1 = new Straight
+		track.add straight1
 		track.add new Straight
-		clone = track.clone()
-		it 'should yield a mutable track', ->
-			clone.add new Straight
-			clone.pieces().should.have.length 2
-			Math.round(clone._transform("1:B").translateX).should.equal 133
-		it 'should yield an independent track', ->
-			track.pieces().should.have.length 1
-			track.pieces()[0].set 'size', 0.5
-			Math.round(track._transform("0:B").translateX).should.equal 50
-			Math.round(clone._transform("1:B").translateX).should.equal 133
+		[1..6].forEach -> track.add new Bend
+		track.add new Straight
+		straight2 = new Straight
+		track.add straight2
+		it 'should be available for a track', ->
+			track.hasCollision().should.equal true
+			track.collisions().should.have.length 1
+			track.collisions()[0].should.include 0
+			track.collisions()[0].should.include 9
+		it 'should be a available for a piece', ->
+			straight1.hasCollision().should.equal true
+			straight2.hasCollision().should.equal true
 	
 
 	

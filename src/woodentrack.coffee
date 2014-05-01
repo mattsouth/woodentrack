@@ -148,7 +148,7 @@ class Track
 		result = []
 		for source, idx in pieces
 			for target, idx2 in pieces[idx+1..]
-				if source._bbox.overlaps(target._bbox) and !@connected(source, target)
+				if source._bbox.overlaps(target._bbox)
 					result.push [idx, idx2+idx+1]
 		result
 
@@ -314,6 +314,7 @@ class TrackPainter
 		@showCursor = options.showCursor ? true
 		@railWidth = options.railWidth ? 2
 		@railGauge = options.railGauge ? 9
+		@showBBox = options.showBBox ? false
 		@draw()
 
 	draw: ->
@@ -321,6 +322,7 @@ class TrackPainter
 		@track._sections.forEach (section) =>
 			start = section.transform()
 			section._pieces.forEach (piece) =>
+				piece._setBBox if @showBBox
 				piece.draw @, start
 				start = start.compound(piece.exitTransform()).compound(@track._gapTransform)
 		if @showCodes
@@ -357,10 +359,11 @@ class BBox
 		@y2 = t.translateY if !@y2? or t.translateY>@y2
 
 	overlaps: (bbox) ->
-		(bbox.x1>@x1 and bbox.x1<@x2 and bbox.y1>@y1 and bbox.y1<@y2) or 
-		(bbox.x2>@x1 and bbox.x2<@x2 and bbox.y2>@y1 and bbox.y2<@y2) or
-		(bbox.x1>@x1 and bbox.x1<@x2 and bbox.y2>@y1 and bbox.y2<@y2) or 
-		(bbox.x2>@x1 and bbox.x2<@x2 and bbox.y1>@y1 and bbox.y1<@y2)
+		if bbox.x2 < @x1 then return false
+		if bbox.x1 > @x2 then return false
+		if bbox.y2 < @y1 then return false
+		if bbox.y1 > @y2 then return false
+		true
 
 # Abstract track piece
 # @connections define the transforms associated with each connection on the piece
@@ -391,6 +394,8 @@ class Piece
 	draw: (painter, start) ->
 		for label, conn of @connections
 			painter.drawNobble start.compound(conn.transform())
+		if painter.showBBox
+			painter.drawRectangle @_bbox.x1, @_bbox.y1, @_bbox.x2-@_bbox.x1, @_bbox.y2-@_bbox.y1
 
 	set: (property, value) ->
 		if value!=@[property]

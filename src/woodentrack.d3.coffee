@@ -15,6 +15,7 @@ class D3TrackPainter extends TrackPainter
 			when "add"
 				@svg.selectAll(".annotation").remove()
 				@svg.selectAll(".cursor").remove()
+				if @.showBBox then event.target._setBBox event.start 
 				event.target.draw @, event.start
 				if @showCursor and @track.cursor()?
 					@drawCursor @track._transform(@track.cursor())
@@ -103,6 +104,7 @@ class D3TrackPainter extends TrackPainter
 	_clear: ->
 		@svg.selectAll("path").remove()
 		@svg.selectAll("text").remove()
+		@svg.selectAll("rect").remove()
 
 root = exports ? window
 root.D3TrackPainter = D3TrackPainter
