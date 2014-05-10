@@ -1,0 +1,20 @@
+<html>
+	<head>
+		<title>Woodentrack - random track generation with Raphael painter</title>
+		<script type="text/javascript" src="raphael-min.js"></script>
+		<script type="text/javascript" src="woodentrack.js"></script>
+		<script type="text/javascript" src="woodentrack.raphael.js"></script>
+		<script type="text/javascript" src="woodentrack.random.js"></script>
+		<style>
+			html, body { margin:0; padding:0; overflow:hidden }
+		</style>
+	</head>
+	<body>
+		<div id="track-canvas" style="width: 100%; height: 100%"/>
+		<script type="text/javascript">
+			window.track = new Track(new Transform(350, 250, 0));
+			window.painter = new RaphaelTrackPainter(window.track, 'track-canvas', {showCodes:false, showCursor:false});
+			setInterval(function(){window.addRandom(window.track, 1)}, 1000);
+		</script>
+	</body>
+</html>

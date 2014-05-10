@@ -1,0 +1,23 @@
+<html>
+	<head>
+		<title>Woodentrack - random track generation with d3 painter</title>
+		<script type="text/javascript" src="d3.v3.min.js" charset="utf-8"></script>
+		<script type="text/javascript" src="woodentrack.js"></script>
+		<script type="text/javascript" src="woodentrack.d3.js"></script>
+		<script type="text/javascript" src="woodentrack.random.js"></script>
+		<style>
+			html, body { margin:0; padding:0; overflow:hidden }
+			svg { position:fixed; top:0; bottom:0; left:0; right:0 }
+		</style>
+	</head>
+	<body>
+	    <svg id="track-canvas" xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%">
+	         <text x="100" y="100" font-family="sans-serif" fill="lightgrey" font-size="50" font-weight="bold">Woodentrack</text>
+	    </svg>
+		<script>
+			window.track = new Track(new Transform(350,250,0));
+			window.painter = new D3TrackPainter(window.track, 'track-canvas', {showCodes:false, showCursor:false});
+			startGenerator(window.track);
+		</script>
+	</body>
+</html>
