@@ -50,5 +50,15 @@ addRandom = (track, num) ->
 			if connection?
 				track.connect piece, connection
 
+startGenerator = (track) ->
+	@generator = setInterval -> 
+			addRandom(track, 1)
+		, 1000 
+
+stopGenerator = () -> 
+	clearInterval @generator
+
 root = exports ? window
 root.addRandom = addRandom
+root.startGenerator = startGenerator
+root.stopGenerator = stopGenerator
