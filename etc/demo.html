@@ -7,12 +7,20 @@
 		<script type="text/javascript" src="/src/woodentrack.random.js"></script>
 		<style>
 			svg {
-				border: 1px solid black;
+				border: 1px solid lightgrey;
+			}
+			body, h1, p {
+				color: lightgrey;
+				font-family: sans-serif;
+			}
+			h1 {
+				font-size: 40;
 			}
 		</style>
 	</head>
 	<body>
-		<h1>Demotastic - a blank svg element to play with</h1>
+		<h1 style="display:inline">Woodentrack</h1>
+		<p>Open console.  Start building track.</p>
 		<svg id="track-canvas" width="800" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
 		<script type="text/javascript">
 			window.track = new Track(new Transform(350,250,0));

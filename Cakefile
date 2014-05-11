@@ -14,9 +14,9 @@ reset = '\x1B[0m'
 log = (message, color, explanation) ->
   console.log color + message + reset + ' ' + (explanation or '')
 
-task 'build', 'Production build, no map files', ->
+task 'build', 'Build javascript/map files', ->
     log 'Building coffee files', blue
-    build = spawn "./node_modules/.bin/coffee", "-c ./src ./test".split(" ")
+    build = spawn "./node_modules/.bin/coffee", "-c -m ./src ./test".split(" ")
     build.stdout.pipe process.stdout
     build.stderr.pipe process.stderr
     build.on 'exit', (code) ->
