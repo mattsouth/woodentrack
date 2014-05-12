@@ -26,9 +26,12 @@ Potential demos
 
 ### TODO:
 
- - try litcoffee extensions for better documention
- - try http://coffeedoc.info/
- - pan / zoom for painted tracks in raphael
+ - documentation of trigonometry with litcoffee / coffeedoc.info
+ - pan / zoom for raphael painter
+ - make pan / zoom optional for d3 painter
+ - optimisation for random demo that slows up as n increases
+ - pause / run / refresh buttons for random demos
+ - instructions embedded within the console for demo.html
  - removeAndJoin method (rename of existing remove method and a new remove added that doesnt change the rest of the track)
  - move method (move a section / part section / piece)
  - track composer demo (touch based?)
