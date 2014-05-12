@@ -2,11 +2,11 @@
 # requires an svg element in the document with the passed id
 class D3TrackPainter extends TrackPainter
 	constructor: (track, @selector, options={}) ->
-		vis = d3.select('#'+@selector)
+		vis = d3.select(@selector)
 			.attr("pointer-events", "all")
 			.call(d3.behavior.zoom().on("zoom", -> vis.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")))
-			.append("svg:g")
-		@svg = d3.select('#' + @selector + ' g')
+			.insert("svg:g", ":first-child")
+		@svg = d3.select(@selector + ' g')
 		super track, options
 		track.on 'add remove clear change', @
 
