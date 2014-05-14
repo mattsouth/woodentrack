@@ -120,5 +120,3 @@
   root.D3TrackPainter = D3TrackPainter;
 
 }).call(this);
-
-//# sourceMappingURL=woodentrack.d3.map
