@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 	<head>
 		<title>Woodentrack demo</title>
 		<script type="text/javascript" src="d3.v3.min.js" charset="utf-8"></script>
@@ -7,10 +8,10 @@
 		<script type="text/javascript" src="woodentrack.random.js"></script>
 		<style>
 			svg {
-				border: 1px solid lightgrey;
+				border: 1px solid grey;
 			}
 			body, h1, p {
-				color: lightgrey;
+				color: grey;
 				font-family: sans-serif;
 			}
 			h1 {
@@ -24,7 +25,17 @@
 		<svg id="track-canvas" width="800" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"/>
 		<script type="text/javascript">
 			window.track = new Track(new Transform(350,250,0));
-			window.painter = new D3TrackPainter(window.track, 'track-canvas');
+			window.painter = new D3TrackPainter(window.track, '#track-canvas');
+			var msg = "To add your first piece: track.add(new Straight)\n\
+To add a bend to the cursor connection: track.add(new Bend)\n\
+To connect a crossover piece to a non cursor connection: track.connect(new Crossover, \"0:A\")\n\
+Other piece types: Merge, Join, Split\n\
+Pieces can be flipped left with the flip option, e.g.: track.add(new Bend({flip:-1}));\n\
+To start again: track.clear()\n\
+Update track properties: track.set('trackGap',4)\n\
+Other track properties: trackWidth, gridSize\n\
+Painter properties: trackColor, railColor, showCodes, showCursor, railWidth, railGauge";
+			console.log(msg);
 		</script>
 	</body>
 </html>

@@ -13,10 +13,10 @@
       if (options == null) {
         options = {};
       }
-      vis = d3.select('#' + this.selector).attr("pointer-events", "all").call(d3.behavior.zoom().on("zoom", function() {
+      vis = d3.select(this.selector).attr("pointer-events", "all").call(d3.behavior.zoom().on("zoom", function() {
         return vis.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")");
-      })).append("svg:g");
-      this.svg = d3.select('#' + this.selector + ' g');
+      })).insert("svg:g", ":first-child");
+      this.svg = d3.select(this.selector + ' g');
       D3TrackPainter.__super__.constructor.call(this, track, options);
       track.on('add remove clear change', this);
     }
