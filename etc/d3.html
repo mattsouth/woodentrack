@@ -6,6 +6,7 @@
 		<script type="text/javascript" src="/src/woodentrack.js"></script>
 		<script type="text/javascript" src="/src/woodentrack.d3.js"></script>
 		<script type="text/javascript" src="/src/woodentrack.random.js"></script>
+		<script type="text/javascript" src="/lib/svgbutton.js"></script>
 		<style>
 			html, body { margin:0; padding:0; overflow:hidden }
 			svg { position:fixed; top:0; bottom:0; left:0; right:0 }
@@ -22,31 +23,24 @@
 	<body>
 	    <svg id="track-canvas" xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%">
         	<text id="title" x="100" y="100" font-family="sans-serif" fill="grey" font-weight="bold" font-size="50">Woodentrack</text>
-        	<rect id="action" x="440" y="74" width="30" height="30" rx="5" ry="5" stroke-width="2" stroke="grey" fill="none" onmouseover="this.style.fill='lightgrey'" onmouseout="this.style.fill='none'" onmouseup="doAction()" ontouchend="fillButton('action','none')"/>
-        	<path id="pause" d="M447 80 L447 98 L 453 98 L453 80 L447 80 M457 80 L457 98 L463 98 L463 80 L457 80" fill="grey" onmouseover="fillButton('action','lightgrey')" onmouseout="fillButton('action','none')" onmouseup="doAction()" ontouchend="fillButton('action','none')"/>
-        	<path id="resume" class="invisible" d="M451 80 L461 89 L451 98 Z" fill="grey" onmouseover="fillButton('action','lightgrey')" onmouseout="fillButton('action','none')" onmouseup="doAction()" ontouchend="fillButton('action','none')"/>
-        	<rect id="restart" x="490" y="74" width="30" height="30" rx="5" ry="5" stroke-width="2" stroke="grey" fill="none" onmouseover="this.style.fill='lightgrey'" onmouseout="this.style.fill='none'" onmouseup="track.clear()" ontouchend="fillButton('restart','none')"/>
-        	<path d="M 513 89 a 8 8 0 1 1 -8 -8" fill="none" stroke="grey" stroke-width="5" onmouseover="fillButton('restart','lightgrey')" onmouseout="fillButton('restart','none')" onmouseup="track.clear()" ontouchend="fillButton('restart','none')"/>
-        	<path d="M505 76 L511 81 L505 86 Z" fill="grey" onmouseover="fillButton('restart','lightgrey')" onmouseout="fillButton('restart','none')" onmouseup="track.clear()" ontouchend="fillButton('action','none')"/>
 	    </svg>
 		<script>
 			window.track = new Track(new Transform(350,250,0));
 			window.painter = new D3TrackPainter(window.track, '#track-canvas', {showCodes:false, showCursor:false});
-			startGenerator(window.track);	
-			var started=true;
-			function doAction() {
-				if (started) {
-					stopGenerator();
-					d3.select("#resume").attr('class', '')
-					d3.select("#pause").attr('class', 'invisible')
-					started = false;
-				} else {
-					startGenerator(track);
-					d3.select("#resume").attr('class', 'invisible')
-					d3.select("#pause").attr('class', '')
-					started = true;
-				}
-			};
+			startGenerator(window.track);
+			// buttons
+			svgbbox = document.getElementById('track-canvas').getBoundingClientRect();
+            var buttons = new SVGButton('#track-canvas');
+            buttons.makeStatefulButton('pause', svgbbox.width-90, svgbbox.height-45, [
+                { path: {d: 'M7 6L7 24 L13 24 L13 6 L7 6 M17 6 L17 24 L23 24 L23 6 L17 6', fill:'grey', 'stroke-width': 0}, action:'stopGenerator();' },
+                { path: {d: 'M11 6 L21 15 L11 24 Z', fill:'grey'}, action:'startGenerator(window.track);' }
+            ]);            
+            buttons.makeButton('restart', svgbbox.width-45, svgbbox.height-45, "window.track.clear();", {
+                path: [
+                    { fill:'none', stroke:'grey', "stroke-width":5, d:'M23 16a 8 8 0 1 1 -8 -8' },
+                    { fill:'grey', d:'M15 4L21 9L15 14Z' }
+                ]
+            });
 		</script>
 	</body>
 </html>
