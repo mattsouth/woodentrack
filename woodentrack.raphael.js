@@ -117,5 +117,3 @@
   root.RaphaelTrackPainter = RaphaelTrackPainter;
 
 }).call(this);
-
-//# sourceMappingURL=woodentrack.raphael.map
