@@ -3,12 +3,12 @@ Ideas for random:
 builder can randomly select next piece or what connection to add it to
 constraints can be based on boundary, mix of pieces and number of allowed loose connections
 1. completely random. unbounded
-1a. completely random but with weights for occurance of pieces.
-2. completely random. bounded by box. pieces cannot be added that break the boundary.  start in middle of box.
-2a. completely random. bounded by box. pieces can break boundary but after each iteration remove section if boundary broken.
+2. completely random. bounded by box. pieces cannot be added that break the boundary. 
+todo: variation - completely random but with weights for occurance of pieces.
+todo: variation - pieces can break boundary but after each iteration remove section if boundary broken.
 ###
 
-addRandom = (track, num) ->
+addRandom = (track, num, bounds=null) ->
 
 	# find connection that doesnt create collision
 	getFreeConnection = (piece, connections) ->
@@ -19,9 +19,14 @@ addRandom = (track, num) ->
 			clone = track.clone()
 			clone.connect piece, connections[idx]
 			if !clone.hasCollision()
-				connections[idx]
-			else 
-				getFreeConnection piece, connections.splice(idx+1)
+				if !bounds? or bounds?.overlaps(piece._bbox)
+					connections[idx]
+				else
+					connections.splice idx, 1
+					getFreeConnection piece, connections
+			else
+				connections.splice idx, 1
+				getFreeConnection piece, connections
 
 	[1..num].forEach ->
 		# which new piece
@@ -42,18 +47,17 @@ addRandom = (track, num) ->
 			when 5
 				piece = new Crossover { flip : flip }
 		# which connection
-		connections = track.connections()
 		if track.pieces().length==0
 			track.add piece
 		else
-			connection = getFreeConnection piece, connections
+			connection = getFreeConnection piece, track.connections()
 			if connection?
 				track.connect piece, connection
 
-startGenerator = (track) ->
+startGenerator = (track, bounds=null) ->
 	@generator = setInterval -> 
-			addRandom(track, 1)
-		, 1000 
+			addRandom(track, 1, bounds)
+		, 100 
 
 stopGenerator = () -> 
 	clearInterval @generator

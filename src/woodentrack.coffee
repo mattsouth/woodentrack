@@ -352,6 +352,8 @@ class Transform
 
 # Bounding box
 class BBox
+	constructor: (@x1=null, @y1=null, @x2=null, @y2=null) ->
+		
 	addTransform: (t) ->
 		@x1 = t.translateX if !@x1? or t.translateX<@x1
 		@x2 = t.translateX if !@x2? or t.translateX>@x2
@@ -574,3 +576,4 @@ root.Split = Split
 root.Join = Join
 root.Merge = Merge
 root.Crossover = Crossover
+root.BBox = BBox
