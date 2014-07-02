@@ -1,4 +1,4 @@
-# see http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/
+# see http://net.tutsplus.com/tutorials/javascript-ajax/better-coffeescript-testing-with-mocha/ for setup
 should = require('chai').should()
 {Track, Section, Transform, Straight, Bend, Split, Crossover, Merge} = require '../src/woodentrack'
 
