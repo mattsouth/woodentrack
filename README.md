@@ -21,7 +21,7 @@ To use demos in /etc, try "python -m SimpleHTTPServer 8000".
 
 Potential demos
 
- 1. easy to use track drawing application
+ 1. easy to use track drawing application - use interact.js? 
  2. take existing track and click button to morph track into another layout with the same pieces and the same number of loose ends
 
 ### TODO:
