@@ -107,6 +107,15 @@ describe 'Track', ->
 		it 'should have one available connection at 1:B', ->
 			track.connections().should.include "1:B"
 
+	describe 'with two pieces after one has been removed', ->
+		track = new Track
+		track.add new Straight
+		track.add new Bend
+		track.remove 1
+		track.add new Bend
+		it 'should have two connections', ->
+			track.connections().should.have.length 2
+
 	describe 'with three straights which then has the middle one removed', ->
 		track = new Track
 		[1..3].forEach -> track.add new Straight
@@ -239,7 +248,7 @@ describe 'Track', ->
 			track.pieces()[0].set 'size', 0.5
 			Math.round(track._transform("0:B").translateX).should.equal 50
 			Math.round(clone._transform("1:B").translateX).should.equal 133
-	
+
 	describe 'collision detection', ->
 		track = new Track
 		crossover = new Crossover
@@ -283,6 +292,3 @@ describe 'Track', ->
 		it 'should be a available for a piece', ->
 			straight1.hasCollision().should.equal true
 			straight2.hasCollision().should.equal true
-	
-
-	

@@ -129,14 +129,14 @@ class Track
 		@_fire { type: 'remove', target: @ }
 
 	clear: ->
-		# todo: remove listeners / pieces?
+		# TODO: remove listeners / pieces?
 		@_sections = []
 		@_fire { type: 'clear', target: @ }
 		@started = null
 
 	# Each collision is represented by an array of piece indexes that collide.
 	# very coarse algorithm currently used
-	# todo: look for three, four etc way collisions
+	# TODO: look for three, four etc way collisions
 	collisions: ->
 		pieces = []
 		@._sections.forEach (section) =>
@@ -260,18 +260,20 @@ class Track
 				idx = @_pieces.indexOf idx
 			num_pieces = @_pieces.length
 			if idx>=0 and idx<num_pieces
-				# deal with section connections
-				removee = @_pieces[idx]
-				if num_pieces>1
-					if idx<(num_pieces-1)
+				if num_pieces is 1
+					@exit=null
+				else
+					# deal with section connections
+					removee = @_pieces[idx]
+					if idx<(num_pieces-1) # if not last piece
 						@_pieces[idx+1].connections['A'].connected=removee.connections['A'].connected
-					if idx>0
+					else
+						@exit = @_pieces[idx-1].connections[@_pieces[idx-1].exit]
+					if idx>0 # if not first piece
 						@_pieces[idx-1].connections[@_pieces[idx-1].exit].connected=removee.connections[removee.exit].connected
 					removee.connections['A'].connected=null
 					removee.connections[removee.exit].connected=null
-				else
-					@exit=null
-				# TODO: deal with any other track connections attached to this one
+					# TODO: deal with any other track connections attached to this one
 				# set removee piece section to null
 				@_pieces[idx].section=null
 				# remove piece
@@ -349,11 +351,10 @@ class Transform
 	toString: ->
 		return "("+@translateX+", "+@translateY+", "+@rotateDegs+")"
 
-
 # Bounding box
 class BBox
 	constructor: (@x1=null, @y1=null, @x2=null, @y2=null) ->
-		
+
 	addTransform: (t) ->
 		@x1 = t.translateX if !@x1? or t.translateX<@x1
 		@x2 = t.translateX if !@x2? or t.translateX>@x2

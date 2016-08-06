@@ -12,5 +12,9 @@
         "chai" :            ">=1.8.1",
         "raphael" :         ">= 2.1.0",
         "d3" :              ">= 3.3.11"
+    },
+    "scripts": {
+      "test": "coffee -c src test && node node_modules/mocha/bin/mocha",
+      "build": "coffee -c src"
     }
 }
