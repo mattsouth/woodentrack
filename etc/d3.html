@@ -35,7 +35,7 @@
             buttons.makeStatefulButton('pause', bounds.width-90, bounds.height-45, [
                 { path: {d: 'M7 6L7 24 L13 24 L13 6 L7 6 M17 6 L17 24 L23 24 L23 6 L17 6', fill:'grey', 'stroke-width': 0}, action:'stopGenerator();' },
                 { path: {d: 'M11 6 L21 15 L11 24 Z', fill:'grey'}, action:'startGenerator(window.track, window.trackbounds);' }
-            ]);            
+            ]);
             buttons.makeButton('restart', bounds.width-45, bounds.height-45, "window.track.clear();", {
                 path: [
                     { fill:'none', stroke:'grey', "stroke-width":5, d:'M23 16a 8 8 0 1 1 -8 -8' },
