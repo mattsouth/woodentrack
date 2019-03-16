@@ -1,20 +1,21 @@
 {
-    "name" : "woodentrack",
-    "version" : "0.0.1",
-    "author" : "Matt South <matt@mattsouth.net>",
-    "repository" : {
-        "type" : "git",
-        "url" : "https://www.github.com/mattsouth/woodentrack·git"
+    "name": "woodentrack",
+    "version": "0.1.0",
+    "author": "Matt South <matt@mattsouth.net>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://www.github.com/mattsouth/woodentrack·git"
     },
-    "dependencies" : {
-        "coffee-script" :   ">=1.6.3",
-        "mocha" :           ">=1.14.0",
-        "chai" :            ">=1.8.1",
-        "raphael" :         ">= 2.1.0",
-        "d3" :              ">= 3.3.11"
+    "dependencies": {
+        "coffee-script": ">=1.6.3",
+        "mocha": ">=1.14.0",
+        "chai": ">=1.8.1",
+        "raphael": ">= 2.1.0",
+        "d3": ">= 3.3.11"
     },
     "scripts": {
-      "test": "coffee -c src test && node node_modules/mocha/bin/mocha",
-      "build": "coffee -c src"
+        "test": "coffee -c src test && node node_modules/mocha/bin/mocha",
+        "build": "coffee -c src"
     }
 }
