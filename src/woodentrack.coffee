@@ -1,4 +1,4 @@
-# a track is an observable / drawable model of a woooden train track comprising
+# a track is an observable / drawable model of a wooden train track comprising
 # multiple pieces of different types connected together
 class Track
 	constructor: (@start=new Transform(0,0,0), options={}) ->
@@ -129,7 +129,7 @@ class Track
 				throw new Error(code + " is not an available connection")
 		else
 			throw new Error 'the first parameter should be a piece'
-			
+
 	# remove indexed piece from track
 	remove: (index) ->
 		[sectionIndex, pieceIndex] = @_sectionAndPieceIndex index

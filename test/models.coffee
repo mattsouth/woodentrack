@@ -275,7 +275,7 @@ describe 'Track', ->
 			clone.collisions()[0].should.include 2
 			clone.collisions()[0].should.include 4
 
-	describe 'collision detection - crossed liness', ->
+	describe 'collision detection - crossed lines', ->
 		track = new Track
 		straight1 = new Straight
 		track.add straight1
