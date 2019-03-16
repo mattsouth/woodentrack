@@ -1,6 +1,6 @@
 Woodentrack is a coffeescript library for designing and testing toy train track layouts.
 
-It has as few dependencies for running tests, as shown in package.json.  run "npm install" to set them up.
+It has a few dependencies for running tests, as shown in package.json.  run "npm install" to set them up.
 
 ## Notes
 
@@ -14,7 +14,7 @@ woodentrack.coffee defines an API for building and manipulating the model of a t
 
 ### Demos
 
-To use demos in /etc, try "python -m SimpleHTTPServer 8000".
+To see demos in /etc locally, use <a href="https://www.npmjs.com/package/superstatic">superstatic</a> or similar.
 
  1. <a href="http://mattsouth.github.io/woodentrack/demo.html">demo.html</a>: simple page with empty canvas.  open console.  start building track.
  2. <a href="http://mattsouth.github.io/woodentrack/d3.html">d3.html</a> / <a href="http://mattsouth.github.io/woodentrack/raphael.html">raphael.html</a>: random track builders
