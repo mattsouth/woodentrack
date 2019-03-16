@@ -63,25 +63,30 @@ class Track
 			result = result.concat section._pieces
 		result
 
-	# Add piece to track.
-	# Use start transform to specify position/orientation of piece.
-	# If no start provided, the cursor connection will be used.
-	# If no pieces in track, the default transform is used.
+	# Add piece to track at cursor.
+	# If there are no pieces in track, the start transform is used in lieu of the cursor.
+    # If there are pieces in the track but there's no cursor, you'll need to provide a transform in the second parameter to specify the position of the piece.
 	# TODO: check piece connections for collisions and bail if there are any
 	add: (piece, where) ->
-		if where?
-			section = @_createSection -> where
-			piece.setSection section
-			@_firePieceAdded piece
-		else if @connections().length==0 and !@started?
-			section = @_createSection => @start
-			piece.setSection section
-			@_firePieceAdded piece
-			@started = piece
-		else if @cursor()?
-			@connect piece, @cursor()
+		if piece instanceof Piece
+			if where?
+				if where instanceof Transform
+					section = @_createSection -> where
+					piece.setSection section
+					@_firePieceAdded piece
+				else
+					throw new Error 'the second parameter should be a transform - perhaps you need to use the connect method?'
+			else if @connections().length==0 and !@started?
+				section = @_createSection => @start
+				piece.setSection section
+				@_firePieceAdded piece
+				@started = piece
+			else if @cursor()?
+				@connect piece, @cursor()
+			else
+				throw new Error 'unable to add piece - try specifying the where parameter in the track.add method'
 		else
-			throw new Error 'unable to add piece - try specifying the where parameter in the track.add method'
+			throw new Error 'the first parameter should be a piece'
 
 	# connection (code) where the next piece will be added
 	cursor: ->
@@ -100,28 +105,31 @@ class Track
 	# Connect piece to available connection identified from code, e.g. "10:C".
 	# Throws Error if specified connection not available.
 	connect: (piece, code) ->
-		if @connections().indexOf(code)>-1
-			# check through each of the section exits before creating a new section
-			added = false
-			@_sections.forEach (section) =>
-				length = section._pieces.length
-				last = section._pieces[length-1]
-				lastExit = (@_sectionStartingIndex(section)+length-1)+":"+last.exit
-				if lastExit == code
-					added = true
+		if piece instanceof Piece
+			if @connections().indexOf(code)>-1
+				# check through each of the section exits before creating a new section
+				added = false
+				@_sections.forEach (section) =>
+					length = section._pieces.length
+					last = section._pieces[length-1]
+					lastExit = (@_sectionStartingIndex(section)+length-1)+":"+last.exit
+					if lastExit == code
+						added = true
+						piece.setSection section
+						@_firePieceAdded piece
+				if !added
+					[index, label] = code.split ':'
+					[sectionIndex, sectionPieceIndex] = @_sectionAndPieceIndex index
+					section = @_createSection => @_sections[sectionIndex].compoundTransform(sectionPieceIndex,label).compound(@_gapTransform)
+					@_connection(code).connected = piece.connections['A']
+					piece.connections['A'].connected = @_connection(code)
 					piece.setSection section
 					@_firePieceAdded piece
-			if !added
-				[index, label] = code.split ':'
-				[sectionIndex, sectionPieceIndex] = @_sectionAndPieceIndex index
-				section = @_createSection => @_sections[sectionIndex].compoundTransform(sectionPieceIndex,label).compound(@_gapTransform)
-				@_connection(code).connected = piece.connections['A']
-				piece.connections['A'].connected = @_connection(code)
-				piece.setSection section
-				@_firePieceAdded piece
+			else
+				throw new Error(code + " is not an available connection")
 		else
-			throw new Error(code + " is not an available connection")
-
+			throw new Error 'the first parameter should be a piece'
+			
 	# remove indexed piece from track
 	remove: (index) ->
 		[sectionIndex, pieceIndex] = @_sectionAndPieceIndex index
